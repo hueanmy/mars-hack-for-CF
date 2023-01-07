@@ -13,22 +13,6 @@ const io = new Server(server, {
 const uuid = require('uuid');
 
 const users = [
-    {
-        userId: "123",
-        userName: "hehe",
-        winSet: 0,
-        score: 0,
-        ready: false,
-        readyToNextGame: false,
-    },
-    {
-        userId: "12345",
-        userName: "abc",
-        winSet: 0,
-        score: 0,
-        ready: false,
-        readyToNextGame: false,
-    }
 ];
 const rooms = [];
 
@@ -181,9 +165,12 @@ app.post('/api/quit', (req, res) => {
 
 io.on('connection', (socket) => {
     users.push({
-        id: socket.id,
-        name: '',
-        socket: socket
+        userId: socket.id,
+        userName: '',
+        winSet: 0,
+        score: 0,
+        ready: false,
+        readyToNextGame: false,
     });
 
     socket.on('disconnect', () => {
