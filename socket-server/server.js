@@ -14,20 +14,20 @@ const uuid = require('uuid');
 
 const users = [
     {
-        userId: "123",
-        userName: "hehe",
-        winSet: 0,
-        score: 0,
-        ready: false,
-        readyToNextGame: false,
+        "userId": "123",
+        "userName": "hehe",
+        "winSet": 0,
+        "score": 0,
+        "ready": false,
+        "readyToNextGame": false
     },
     {
-        userId: "12345",
-        userName: "abc",
-        winSet: 0,
-        score: 0,
-        ready: false,
-        readyToNextGame: false,
+        "userId": "12345",
+        "userName": "abc",
+        "winSet": 0,
+        "score": 0,
+        "ready": false,
+        "readyToNextGame": false
     }
 ];
 const rooms = [];
@@ -125,8 +125,6 @@ app.post('/lose', (req, res) => {
 
     let winUser = room.users.find(x => x.userId != loseUserId);
     let loseUser = room.users.find(x => x.userId == loseUserId);
-    console.log(winUser);
-    console.log(loseUser);
 
     winUser.score += 1;
     if (winUser.score == 5) {
@@ -167,23 +165,35 @@ app.post('/api/ready-to-next-game', (req, res) => {
         userReady.readyToNextGame = true;
 
         if(room.users[0].readyToNextGame && room.users[1].readyToNextGame){
-            io.to(room.users[0]).emit('ready-to-play-next-game', '');
-            io.to(room.users[1]).emit('ready-to-play-next-game', '');
+            io.to(room.users[0].userId).emit('ready-to-play-next-game', '');
+            io.to(room.users[1].userId).emit('ready-to-play-next-game', '');
         }
     }
 });
 
 app.post('/api/quit', (req, res) => {
-    //1 user quit trận đấu => user kia thắng luôn
+    const roomId = req.query.roomId;
+    const userId =  req.query.userId;
+    const room = rooms.find(x => x.id == roomId);
+    const winUser = room.users.find(x => x.userId == userId);
+
+    io.to(winUser.userId).emit('user-quit', '');
+    room.users = [];
+    room.users.push(winUser);
+
+    res.send(room);
 });
 
 
 
 io.on('connection', (socket) => {
     users.push({
-        id: socket.id,
-        name: '',
-        socket: socket
+        userId: socket.id,
+        userName: '',
+        winSet: 0,
+        score: 0,
+        ready: false,
+        readyToNextGame: false,
     });
 
     socket.on('disconnect', () => {
