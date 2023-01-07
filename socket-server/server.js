@@ -32,7 +32,7 @@ const users = [
 ];
 const rooms = [];
 
-app.post('/update-username', (req, res) => {
+app.post('/api/update-username', (req, res) => {
     const userId = req.query.userId;
     const userName = req.query.userName;
     if (users.findIndex(u => u.userId === userId) >= 0) {
@@ -41,13 +41,13 @@ app.post('/update-username', (req, res) => {
     res.send("ok");
 });
 
-app.get('/list-users', (req, res) => {
+app.get('/api/list-users', (req, res) => {
     const searchText = req?.query?.searchText || '';
     res.send(users
         .filter(u => !searchText || u.userName.toLowerCase().indexOf(searchText.toLowerCase()) != -1));
 });
 
-app.post('/create-room', (req, res) => {
+app.post('/api/create-room', (req, res) => {
     const userId = req.query.userId;
     let user = users.find(x=>x.userId == userId);
     const newRoom = {
@@ -67,7 +67,7 @@ app.post('/create-room', (req, res) => {
     res.send(newRoom)
 });
 
-app.get('/join-room', (req, res) => {
+app.get('/api/join-room', (req, res) => {
     const userId = req.query.userId;
     const roomId = req.query.roomId;
 
@@ -88,7 +88,7 @@ app.get('/join-room', (req, res) => {
 
 });
 
-app.get('ready', (req, res) => {
+app.get('/api/ready', (req, res) => {
     const userId = req.query.userId;
     const roomId = req.query.roomId;
 
@@ -153,11 +153,11 @@ app.post('/lose', (req, res) => {
     
     res.send(room);
 });
-app.get('/get-room', (req, res) => {
+app.get('/api/get-room', (req, res) => {
     const room = rooms.find(x => x.id == req.query.roomId);
     res.send(room);
 });
-app.post('/ready-to-next-game', (req, res) => {
+app.post('/api/ready-to-next-game', (req, res) => {
     const userId = req.query.userId;
     const roomId = req.query.roomId;
 
@@ -173,7 +173,7 @@ app.post('/ready-to-next-game', (req, res) => {
     }
 });
 
-app.post('/quit', (req, res) => {
+app.post('/api/quit', (req, res) => {
     //1 user quit trận đấu => user kia thắng luôn
 });
 
