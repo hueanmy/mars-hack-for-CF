@@ -1,8 +1,28 @@
-// Copyright (c) 2014 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-// extract from chromium source code by @liuwayong
 (function () {
+    const BASE_URL = 'https://hackathon-2023-mars.creativeforce-dev.io/api';
+    const URL = {
+        UPDATE_USERNAME: '/update-username',
+        LIST_USER: '/list-users',
+        CREATE_ROOM: '/create-room',
+        JOIN_ROOM: '/join-room',
+        READY: '/ready',
+        INVITE: '/invite',
+        LOST: '/lose',
+        GET_ROOM: '/get-room',
+        READY_TO_NEXT_GAME: '/ready-to-next-game',
+        QUIT: '/quit',
+    }
+    const user = {};
+    const socket = io.connect(BASE_URL, {
+        cors: {
+            origin: "*"
+        }
+    });
+    socket.on('connect', () => {
+        user.userId = socket.id;
+        console.log('success')
+    });
+
     'use strict';
     /**
      * T-Rex runner.
@@ -778,6 +798,7 @@
          * Game over state.
          */
         gameOver: function () {
+            socket.emit('lose');
             this.playSound(this.soundFx.HIT);
             vibrate(200);
 
