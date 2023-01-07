@@ -1,5 +1,6 @@
 (function () {
-    const BASE_URL = 'https://hackathon-2023-mars.creativeforce-dev.io/api';
+    const BASE_SOCKET_URL = 'https://hackathon-2023-mars.creativeforce-dev.io';
+    const BASE_URL = BASE_SOCKET_URL + '/api';
     const URL = {
         UPDATE_USERNAME: '/update-username',
         LIST_USER: '/list-users',
@@ -13,7 +14,7 @@
         QUIT: '/quit',
     }
     const user = {};
-    const socket = io.connect(BASE_URL, {
+    const socket = io.connect(BASE_SOCKET_URL, {
         cors: {
             origin: "*"
         }
@@ -22,6 +23,15 @@
         user.userId = socket.id;
         console.log('success')
     });
+    var requestOptions = {
+        method: 'GET',
+        redirect: 'follow'
+    };
+
+    fetch(`${BASE_URL}/list-users`, requestOptions)
+        .then(response => response.text())
+        .then(result => console.log(result))
+        .catch(error => console.log('error', error));
 
     'use strict';
     /**
