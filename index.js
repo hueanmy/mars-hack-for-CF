@@ -131,6 +131,8 @@ let winner = {
     btnReady1El.onclick = function () {
         txtReady1El.style.display = 'block';
         btnReady1El.style.display = 'none';
+        document.getElementById("page-4").style.display = "show";
+        document.getElementById("page-3").style.display = "none";
         http.get(URL.READY, {
             userId: user.userId,
             roomId: room.id
@@ -178,34 +180,35 @@ let winner = {
         document.getElementById('page-4').style.display = 'none';
         window.dispatchEvent(new Event('startTimer'))
     });
-    socket.on('user-ready', () => {
-        http.get(URL.GET_ROOM, {roomId: room.id}).then(res => {
-            const users = res.users || [];
-            users.forEach(u => {
-                if (u.userId === user.userId) {
-                    document.getElementById("txtReady1").style.display = 'block';
-                } else {
-                    document.getElementById("txtReady2").style.display = 'block';
-                }
-            })
-        });
-    });
     socket.on('invite', (str) => {
         const data = JSON.parse(str);
-        http.get(URL.GET_ROOM, {roomId: data.roomId}).then(res => {
-            const users = res.users || [];
-            users.forEach(u => {
-                if (u.userId === user.userId) {
-                    document.getElementById("txtUserNameReady1").innerHTML = u.userName;
-                } else {
-                    document.getElementById("txtUserNameReady2").innerHTML = u.userName;
-                    document.getElementById("txtUserNameReady2").style.display = 'block';
-                    document.getElementById("inputSearchUser").style.display = 'block';
-                }
-            })
-            document.getElementById("page-2").style.display = "none";
-            document.getElementById("page-3").style.display = "show";
-        });
+        room = {
+            ...room,
+            ...data,
+            id: data.roomId
+        }
+        http.get(URL.JOIN_ROOM, {roomId: data.roomId, userId: user.userId}).then(() => {
+            document.getElementById("page-0").style.display = "none";
+                document.getElementById("page-1").style.display = "none";
+                document.getElementById("page-2").style.display = "none";
+                document.getElementById("page-4").style.display = "none";
+                document.getElementById("page-5").style.display = "none";
+                document.getElementById("page-3").style.display = "show";
+            http.get(URL.GET_ROOM, {roomId: data.roomId}).then(res => {
+                const users = res.users || [];
+                users.forEach(u => {
+                    if (u.userId === user.userId) {
+                        document.getElementById("txtUserNameReady1").innerHTML = u.userName;
+                    } else {
+                        document.getElementById("txtUserNameReady2").innerHTML = u.userName;
+                    }
+                })
+                
+            });
+        }
+            
+        )
+        
     });
 
     'use strict';
@@ -759,7 +762,7 @@ let winner = {
                 this.startTimer();
             })
 
-this.startTimer();
+            // this.startTimer();
         },
 
         /**
@@ -3153,7 +3156,7 @@ this.startTimer();
 
 
 function onDocumentLoad() {
-    new Runner('.interstitial-wrapper');
+    // new Runner('.interstitial-wrapper');
 }
 
 function onQuit() {
