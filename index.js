@@ -166,6 +166,18 @@ let winner = {
         document.getElementById('page-4').style.display = 'none';
         window.dispatchEvent(new Event('startTimer'))
     });
+    socket.on('user-ready', () => {
+        http.get(URL.GET_ROOM, {roomId: room.id}).then(res => {
+            const users = res.users || [];
+            users.forEach(u => {
+                if (u.userId === user.userId) {
+                    document.getElementById("txtReady1").style.display = 'block';
+                } else {
+                    document.getElementById("txtReady2").style.display = 'block';
+                }
+            })
+        });
+    });
     socket.on('invite', (str) => {
         const data = JSON.parse(str);
         http.get(URL.GET_ROOM, {roomId: data.roomId}).then(res => {
@@ -175,6 +187,8 @@ let winner = {
                     document.getElementById("txtUserNameReady1").innerHTML = u.userName;
                 } else {
                     document.getElementById("txtUserNameReady2").innerHTML = u.userName;
+                    document.getElementById("txtUserNameReady2").style.display = 'block';
+                    document.getElementById("inputSearchUser").style.display = 'block';
                 }
             })
             document.getElementById("page-2").style.display = "none";
@@ -735,7 +749,7 @@ let winner = {
                 this.startTimer();
             })
 
-            this.startTimer();
+
         },
 
         /**
@@ -3109,7 +3123,7 @@ let winner = {
 
 
 function onDocumentLoad() {
-    // new Runner('.interstitial-wrapper');
+    new Runner('.interstitial-wrapper');
 }
 
 function onQuit() {
