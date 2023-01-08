@@ -23,18 +23,21 @@ app.post('/api/update-username', (req, res) => {
     const userId = req.query.userId;
     const userName = req.query.userName;
 
+    console.log(req.query);
     console.log(`update-username ${userId} - ${userName}`)
 
     if (users.findIndex(u => u.userId === userId) != -1) {
-        let user = users.find(u => u.userId === userId);
-        user.userName = userName;
+        // let user = users.find(u => u.userId === userId);
+        // user.userName = userName;
 
-        const index = users.indexOf(x=>x.userId == socket.id);
-        if (index > -1) { 
-            users.splice(index, 1); 
-        }
+        users.find(u => u.userId === userId).userName = userName;
 
-        users.push(user);
+        // const index = users.indexOf(x=>x.userId == socket.id);
+        // if (index > -1) { 
+        //     users.splice(index, 1); 
+        // }
+
+        // users.push(user);
     }
 
     res.send("ok");
