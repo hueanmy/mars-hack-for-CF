@@ -14,7 +14,7 @@ const URL = {
     JOIN_ROOM: '/api/join-room',
     READY: '/api/ready',
     INVITE: '/api/invite',
-    LOST: '/lose',
+    LOST: '/api/lose',
     GET_ROOM: '/api/get-room',
     READY_TO_NEXT_GAME: '/api/ready-to-next-game',
     QUIT: '/api/quit',
@@ -72,6 +72,9 @@ let score = {
     }
 }
 
+doResetSet = false;
+doResetMatch = false;
+
 let winner = {
     end: false,
     isPlayer: null
@@ -85,15 +88,18 @@ let winner = {
     });
     socket.on('connect', () => {
         user.userId = socket.id;
+        // user.userId = 'u1'
         http.post(URL.CREATE_ROOM, {userId: user.userId}).then((res) => {
             room = {
                 ...room,
                 ...res
             };
+        }).catch((e) => {
+            console.log(e)
         })
         console.log('success', user.userId)
     });
-    socket.on('lose', () => {
+    socket.on('win', () => {
         window.dispatchEvent(new Event('opponentlose'))
     })
     socket.on('quit', () => {
@@ -104,6 +110,12 @@ let winner = {
     })
     socket.on('create-room', () => {
         window.dispatchEvent(new Event('opponentcreateroom'))
+    })
+    socket.on('ready-to-play', () => {
+        window.dispatchEvent(new Event('showfourscreen'))
+    })
+    socket.on('ready-to-play-next-game', () => {
+        window.dispatchEvent(new Event('isready'))
     })
     const btnReady1El = document.getElementById('btnReady1');
     const txtReady1El = document.getElementById('txtReady1');
@@ -601,6 +613,8 @@ let winner = {
 
             this.adjustDimensions();
             this.setSpeed();
+
+            console.log("SSSS")
             
             this.doRestart = true;
             this.containerEl = document.createElement('div');
@@ -678,40 +692,36 @@ let winner = {
                 }
 
                 if (score.match.opponent >= 5) {
+                    doResetMatch = true;
                     score.set.opponent++;
                     if (score.set.opponent >= 2) {
                       winner.end = true;
                       winner.isPlayer = false;
-                      score.set.opponent = 0;
-                      score.set.player = 0;
                       setTimeout(() => {
                         window.dispatchEvent('return-to-window')
                       }, 3000);
                       middleText.innerText = "Too bad! You lose the set. Returning to lobby..."
                       this.doRestart = false;
+                      doResetSet = true;
                     }
-                    score.match.opponent = 0;
-                    score.match.player = 0;
                     
                 return;
                     
                 }
 
                 if (score.match.player >= 5) {
+                    doResetMatch = true;
                     score.set.player++;
                     if (score.set.player >= 2) {
                       winner.end = true;
                       winner.isPlayer = false;
-                      score.set.opponent = 0;
-                      score.set.player = 0;
                       setTimeout(() => {
                         window.dispatchEvent('return-to-window')
                       }, 3000);
                       middleText.innerText = "Congratulations! You win the set. Returning to lobby..."
                       this.doRestart = false;
+                      doResetSet = true;
                     }
-                    score.match.opponent = 0;
-                    score.match.player = 0;
                 return;
                 }
 
@@ -749,7 +759,7 @@ let winner = {
                 this.startTimer();
             })
 
-
+this.startTimer();
         },
 
         /**
@@ -931,7 +941,7 @@ let winner = {
                     }
                 } else {
                     // => UPDATE CODE KHI ENDGAME VÀO ĐÂY
-                    fetch(BASE_URL + URL.LOST + `?userid=${user.userId}&roomId=${room.roomId}`, {
+                    fetch(BASE_URL + URL.LOST + `?userId=${user.userId}&roomId=${room.roomId}`, {
                         method: 'POST',
                     })
                     this.gameOver(true);
@@ -1204,12 +1214,32 @@ let winner = {
                 this.playSound(this.soundFx.BUTTON_PRESS);
                 // this.invert(true);
                 this.update();
-                fetch(BASE_URL + URL.READY_TO_NEXT_GAME, {
+                console.log(user, room)
+                fetch(BASE_URL + URL.READY_TO_NEXT_GAME + `?userId=${user.userId}&roomId=${room.roomId}`, {
                     method: 'POST',
-                    userId: user.userId,
-                    roomId: room.roomId
                 })
-                this.startTimer();
+                if (doResetMatch) {
+                    const playerMatchScore = document.getElementById('player-match-score');
+                    const oppMatchScore = document.getElementById('opp-match-score');
+    
+                    score.match.player = 0;
+                    score.match.opponent = 0;
+                    playerMatchScore.innerText = score.match.player;
+                    oppMatchScore.innerText = score.match.opponent;
+                    doResetMatch = false;
+                }
+
+                if (doResetSet) {
+                    const playerSetScore = document.getElementById('player-set-score');
+                    const oppSetScore = document.getElementById('opp-set-score');
+
+                    score.set.player = 0;
+                    score.set.opponent = 0;
+                    playerSetScore.innerText = score.set.player;
+                    oppSetScore.innerText = score.set.opponent;
+                    doResetSet = false;
+                }
+                // this.startTimer();
             }
         },
         
