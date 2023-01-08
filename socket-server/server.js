@@ -176,6 +176,7 @@ app.post('/api/quit', (req, res) => {
 
 
 io.on('connection', (socket) => {
+    console.log(`Socket ${socket.id} connect`);
     users.push({
         userId: socket.id,
         userName: '',
@@ -189,6 +190,7 @@ io.on('connection', (socket) => {
     console.log(`User ${socket.id} joined`);
 
     socket.on('disconnect', (socket) => {
+        console.log(`${socket.id} disconnect`);
         const index = users.indexOf(x=>x.userId == socket.id);
         if (index > -1) { // only splice array when item is found
             users.splice(index, 1); // 2nd parameter means remove one item only
