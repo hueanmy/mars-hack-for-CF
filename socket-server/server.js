@@ -22,9 +22,17 @@ const rooms = [];
 app.post('/api/update-username', (req, res) => {
     const userId = req.query.userId;
     const userName = req.query.userName;
-    if (users.findIndex(u => u.userId === userId) >= 0) {
+
+    console.log(`update-username ${userId} - ${userName}`)
+
+    if (users.findIndex(u => u.userId === userId) != -1) {
+        let user = users.find(u => u.userId === userId);
+        console.log(`Update User: ${user}`)
         users.find(u => u.userId === userId).userName = userName;
     }
+
+    console.log(users);
+
     res.send("ok");
 });
 
