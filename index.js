@@ -176,6 +176,12 @@ let winner = {
             id: data.roomId
         }
         http.get(URL.JOIN_ROOM, {roomId: data.roomId, userId: user.userId}).then(() => {
+            document.getElementById("page-0").style.display = "none";
+                document.getElementById("page-1").style.display = "none";
+                document.getElementById("page-2").style.display = "none";
+                document.getElementById("page-4").style.display = "none";
+                document.getElementById("page-5").style.display = "none";
+                document.getElementById("page-3").style.display = "show";
             http.get(URL.GET_ROOM, {roomId: data.roomId}).then(res => {
                 const users = res.users || [];
                 users.forEach(u => {
@@ -185,8 +191,7 @@ let winner = {
                         document.getElementById("txtUserNameReady2").innerHTML = u.userName;
                     }
                 })
-                document.getElementById("page-2").style.display = "none";
-                document.getElementById("page-3").style.display = "show";
+                
             });
         }
             
