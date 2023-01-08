@@ -179,9 +179,9 @@ app.post('/api/invite', (req, res) => {
         const inviteUserId = req.query.inviteUserId;
         const roomId = req.query.roomId;
         let room = rooms.find(x => x.roomId == roomId);
-        let inviteUser = users.find(x => x.id == inviteUserId);
+        let inviteUser = users.find(x => x.userId == inviteUserId);
         if (room && inviteUser) {
-            io.to(inviteUserId).emit('invite', JSON.stringify({ inviteUser: users.find(x => x.id == userId), roomId: roomId }));
+            io.to(inviteUserId).emit('invite', JSON.stringify({ inviteUser: users.find(x => x.userId == userId), roomId: roomId }));
         }
         res.send("ok");
     }
