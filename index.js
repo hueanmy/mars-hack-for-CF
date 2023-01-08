@@ -23,15 +23,37 @@
         user.userId = socket.id;
         console.log('success')
     });
-    var requestOptions = {
-        method: 'GET',
-        redirect: 'follow'
+    function buildParams(data = {}) {
+        let params = '';
+        Object.keys(data).forEach(key => {
+            params += `${params ? '&' : ''}${key}=${data[key]}`;
+        });
+        return params;
+    }
+    const http = {
+        get: (path, data = {}) => {
+            const params = buildParams(data);
+            return new Promise((resolve, reject) => {
+                fetch(`${BASE_URL}${path}${params ? '?' + params : ''}`, {
+                    method: 'GET'
+                })
+                    .then(response => response.json())
+                    .then(resolve)
+                    .catch(reject);
+            })
+        },
+        post: (path, data = {}) => {
+            const params = buildParams(data);
+            return new Promise((resolve, reject) => {
+                fetch(`${BASE_URL}${path}${params ? '?' + params : ''}`, {
+                    method: 'POST'
+                })
+                    .then(response => response.json())
+                    .then(resolve)
+                    .catch(reject);
+            })
+        }
     };
-
-    fetch(`${BASE_URL}/list-users`, requestOptions)
-        .then(response => response.text())
-        .then(result => console.log(result))
-        .catch(error => console.log('error', error));
 
     'use strict';
     /**
