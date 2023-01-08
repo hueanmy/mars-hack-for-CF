@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0,maximum-scale=1.0, user-scalable=no"
     />
-    <title>chrome easter egg: t-rex runner</title>
+    <title>Mars T-Rex runner</title>
     <link rel="stylesheet" href="index.css" />
     <link
       href="https://fonts.googleapis.com/css?family=Open+Sans"
@@ -19,53 +19,59 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-    <script src="index.js"></script>
   </head>
 
   <body id="t" class="offline">
 
-    <div id="page-0" class="welcom form-group row">
-      <div class="col-sm-3 col-form-label" style="display: block"></div>
-      <div class="col-sm-6">
-        <p>Welcom</p>
-        <button onclick="onStartGame()">Start Game</button>
-      </div>
-    </div>
-    <div id="page-1" class="username form-group row">
-      <div class="col-sm-3 col-form-label" style="display: block"></div>
-      <div class="col-sm-6">
-        <input
-          placeholder="Enter user name"
-          type="text"
-          class="form-control"
-          formControlName="fname"
-        />
-      </div>
-      <button onclick="onGoToRoom()">Go</button>
-    </div>
-    <div id="page-2" class="room form-group row">
-      <div class="col-sm-3 col-form-label" style="display: block"></div>
-      <div class="col-sm-6">
-        <input
-          placeholder="Enter room id"
-          type="text"
-          class="form-control"
-          formControlName="froom"
-        />
-        <button style="margin-top: 4px" onclick="onJoinTheRoom()">
-          Join the room
-        </button>
-      </div>
-      <div class="grid-item"></div>
-    </div>
+<!--    <div id="page-0" class="welcom form-group row">-->
+<!--      <div class="col-sm-3 col-form-label" style="display: block"></div>-->
+<!--      <div class="col-sm-6">-->
+<!--        <p>Welcom</p>-->
+<!--        <button onclick="onStartGame()">Start Game</button>-->
+<!--      </div>-->
+<!--    </div>-->
+<!--    <div id="page-1" class="username form-group row">-->
+<!--      <div class="col-sm-3 col-form-label" style="display: block"></div>-->
+<!--      <div class="col-sm-6">-->
+<!--        <input-->
+<!--          placeholder="Enter user name"-->
+<!--          type="text"-->
+<!--          class="form-control"-->
+<!--          formControlName="fname"-->
+<!--        />-->
+<!--      </div>-->
+<!--      <button onclick="onGoToRoom()">Go</button>-->
+<!--    </div>-->
+<!--    <div id="page-2" class="room form-group row">-->
+<!--      <div class="col-sm-3 col-form-label" style="display: block"></div>-->
+<!--      <div class="col-sm-6">-->
+<!--        <input-->
+<!--          placeholder="Enter room id"-->
+<!--          type="text"-->
+<!--          class="form-control"-->
+<!--          formControlName="froom"-->
+<!--        />-->
+<!--        <button style="margin-top: 4px" onclick="onJoinTheRoom()">-->
+<!--          Join the room-->
+<!--        </button>-->
+<!--      </div>-->
+<!--      <div class="grid-item"></div>-->
+<!--    </div>-->
 
     <div id="page-3" class="invite form-group row">
       <div class="col-sm-3 col-form-label" style="display: block"></div>
       <div class="col-sm-3">
-        <button style="margin-top: 4px" onclick="handleOnReady()">Ready</button>
+        <span id="txtUserNameReady1" style="display: none;"></span>
+        <span id="txtReady1" style="display: none;">Ready</span>
+        <button id="btnReady1" style="margin-top: 4px;display: block;">Ready</button>
       </div>
       <div class="col-sm-3">
-        <button style="margin-top: 4px" onclick="handleOnReady()">Ready</button>
+        <span id="txtUserNameReady2" style="display: none;"></span>
+        <span id="txtReady2" style="display: none;">Ready</span>
+        <div>
+          <input type="text" id="inputSearchUser">
+          <div id="selectListUser"></div>
+        </div>
       </div>
       <div class="grid-item"></div>
     </div>
@@ -113,6 +119,7 @@
 
     <div id="page-5" class="result form-group"></div>
   </body>
+  <script src="index.js"></script>
 
   <script>
     document.onkeydown = function (evt) {

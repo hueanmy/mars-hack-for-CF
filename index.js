@@ -1,19 +1,57 @@
-(function () {
-    const BASE_SOCKET_URL = 'https://hackathon-2023-mars.creativeforce-dev.io';
-    const BASE_URL = BASE_SOCKET_URL + '/api';
-    const URL = {
-        UPDATE_USERNAME: '/update-username',
-        LIST_USER: '/list-users',
-        CREATE_ROOM: '/create-room',
-        JOIN_ROOM: '/join-room',
-        READY: '/ready',
-        INVITE: '/invite',
-        LOST: '/lose',
-        GET_ROOM: '/get-room',
-        READY_TO_NEXT_GAME: '/ready-to-next-game',
-        QUIT: '/quit',
+function buildParams(data = {}) {
+    let params = '';
+    Object.keys(data).forEach(key => {
+        params += `${params ? '&' : ''}${key}=${data[key]}`;
+    });
+    return params;
+}
+const BASE_SOCKET_URL = 'https://hackathon-2023-mars.creativeforce-dev.io';
+const BASE_URL = BASE_SOCKET_URL + '/api';
+const URL = {
+    UPDATE_USERNAME: '/update-username',
+    LIST_USER: '/list-users',
+    CREATE_ROOM: '/create-room',
+    JOIN_ROOM: '/join-room',
+    READY: '/ready',
+    INVITE: '/invite',
+    LOST: '/lose',
+    GET_ROOM: '/get-room',
+    READY_TO_NEXT_GAME: '/ready-to-next-game',
+    QUIT: '/quit',
+}
+const http = {
+    get: (path, data = {}) => {
+        const params = buildParams(data);
+        return new Promise((resolve, reject) => {
+            fetch(`${BASE_URL}${path}${params ? '?' + params : ''}`, {
+                method: 'GET'
+            })
+                .then(response => response.json())
+                .then(resolve)
+                .catch(reject);
+        })
+    },
+    post: (path, data = {}) => {
+        const params = buildParams(data);
+        return new Promise((resolve, reject) => {
+            fetch(`${BASE_URL}${path}${params ? '?' + params : ''}`, {
+                method: 'POST'
+            })
+                .then(response => response.json())
+                .then(resolve)
+                .catch(reject);
+        })
     }
-    const user = {};
+};
+
+const user = {};
+const room = {};
+
+async function handleSelectUser(userId, inviteUserId, roomId) {
+    await http.post(URL.INVITE, {userId, inviteUserId, roomId});
+}
+
+(function () {
     const socket = io.connect(BASE_SOCKET_URL, {
         cors: {
             origin: "*"
@@ -23,37 +61,41 @@
         user.userId = socket.id;
         console.log('success')
     });
-    function buildParams(data = {}) {
-        let params = '';
-        Object.keys(data).forEach(key => {
-            params += `${params ? '&' : ''}${key}=${data[key]}`;
-        });
-        return params;
-    }
-    const http = {
-        get: (path, data = {}) => {
-            const params = buildParams(data);
-            return new Promise((resolve, reject) => {
-                fetch(`${BASE_URL}${path}${params ? '?' + params : ''}`, {
-                    method: 'GET'
-                })
-                    .then(response => response.json())
-                    .then(resolve)
-                    .catch(reject);
-            })
-        },
-        post: (path, data = {}) => {
-            const params = buildParams(data);
-            return new Promise((resolve, reject) => {
-                fetch(`${BASE_URL}${path}${params ? '?' + params : ''}`, {
-                    method: 'POST'
-                })
-                    .then(response => response.json())
-                    .then(resolve)
-                    .catch(reject);
-            })
-        }
+    const btnReady1El = document.getElementById('btnReady1');
+    const txtReady1El = document.getElementById('txtReady1');
+    const txtReady2El = document.getElementById('txtReady2');
+    const inputSearchUserEl = document.getElementById('inputSearchUser');
+    const selectListUserEl = document.getElementById('selectListUser');
+    btnReady1El.onclick = function () {
+        txtReady1El.style.display = 'block';
+        btnReady1El.style.display = 'none';
+        http.get(URL.READY, {
+            userId: user.userId,
+            roomId: room.roomId
+        })
     };
+    inputSearchUserEl.onchange = function () {
+        const searchText = inputSearchUserEl.value;
+        http.get(URL.LIST_USER, {searchText}).then(users => {
+            let html = '';
+            (users || []).forEach(u => {
+                if (!u.userName) return;
+                html += `<div onclick="handleSelectUser('${user.userId}', '${u.userId}', '${room.roomId}')">${u.userName}</div>`
+            });
+            if (html) {
+                selectListUserEl.innerHTML = html;
+            }
+        });
+    };
+    socket.on('ready-to-play', (response) => {
+        const users = response?.users || [];
+        users.forEach(u => {
+            if (u.ready && u.userId !== user.userId) {
+                txtReady2El.style.display = 'block';
+            }
+        });
+    });
+    socket.on('invite', () => {});
 
     'use strict';
     /**
