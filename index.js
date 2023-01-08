@@ -5,7 +5,7 @@ function buildParams(data = {}) {
     });
     return params;
 }
-const BASE_SOCKET_URL = 'https://hackathon-2023-mars.creativeforce-dev.io/api/list-users';
+const BASE_SOCKET_URL = 'https://hackathon-2023-mars.creativeforce-dev.io';
 const BASE_URL = BASE_SOCKET_URL + '/api';
 const URL = {
     UPDATE_USERNAME: '/update-username',
@@ -99,8 +99,8 @@ function handleSelectUser(userId, inviteUserId, roomId, userName) {
     const btnRoom = document.getElementById('btnRoom');
     const inputUserName = document.getElementById('inputUserName');
     const inputRoom = document.getElementById('inputRoom');
-    const page1 = document.getElementById('page-1');
-    const page2 = document.getElementById('page-2');
+    // const page1 = document.getElementById('page-1');
+    // const page2 = document.getElementById('page-2');
     btnReady1El.onclick = function () {
         txtReady1El.style.display = 'block';
         btnReady1El.style.display = 'none';
@@ -121,9 +121,8 @@ function handleSelectUser(userId, inviteUserId, roomId, userName) {
             if(inputUserName == item) {
                 alert("user existed");
             } else {
-                http.post(URL.UPDATE_USERNAME, userName).then(res =>  {
-                    console.log(res, 'res');
-                });
+                console.log(userName);
+                http.post(URL.UPDATE_USERNAME, userName);
             }
         })
     }
