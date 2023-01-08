@@ -46,7 +46,7 @@ app.post('/api/update-username', (req, res) => {
 app.get('/api/list-users', (req, res) => {
     const searchText = req?.query?.searchText || '';
     res.send(users
-        .filter(u => !searchText || u.userName.toLowerCase().indexOf(searchText.toLowerCase()) != -1));
+        .filter(u => u.userName != '' && (!searchText || u.userName.toLowerCase().indexOf(searchText.toLowerCase()) != -1)));
 });
 
 app.post('/api/create-room', (req, res) => {
