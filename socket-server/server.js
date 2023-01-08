@@ -144,22 +144,21 @@ app.get('/api/ready', (req, res) => {
         const userId = req.query.userId;
         const roomId = req.query.roomId;
 
-        let room = rooms.find(x => x.id == roomId);
-        console.log('ready - room', room);
+        console.log('ready - room', rooms.find(x => x.id == roomId));
         if (room) {
-            let user = room.users.find(x => x.userId == userId);
+            let user = rooms.find(x => x.id == roomId).users.find(x => x.userId == userId);
             if (user) {
                 console.log('ready - user', user);
                 user.ready = true;
-                if (room.users.length == 2 && room.users[0].ready && room.users[1].ready) {
-                    io.to(room.users[0].userId).emit('ready-to-play', '');
-                    io.to(room.users[1].userId).emit('ready-to-play', '');
+                if (rooms.find(x => x.id == roomId).users.length == 2 && rooms.find(x => x.id == roomId).users[0].ready && rooms.find(x => x.id == roomId).users[1].ready) {
+                    io.to(rooms.find(x => x.id == roomId).users[0].userId).emit('ready-to-play', '');
+                    io.to(rooms.find(x => x.id == roomId).users[1].userId).emit('ready-to-play', '');
                 }
                 room.users.forEach((u) => {
                     io.to(u.userId).emit('user-ready', '');
                 })
-                console.log('ready -users', room.users)
-                res.send(room);
+                console.log('ready -users', rooms.find(x => x.id == roomId).users)
+                res.send(rooms.find(x => x.id == roomId));
             }
         }
         else {
