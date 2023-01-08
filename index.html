@@ -77,9 +77,33 @@
 
     <div id="page-4" class="runner form-group row">
         <div id="messageBox" class="sendmessage">
+          <button id="surrender" onclick="onQuit()">X</button>
           <h1 id="middle-text" style="text-align: center; font-family: 'Open Sans', sans-serif">
           </h1>
-          <button id="surrender" onclick="onSurrender()">X</button>
+          <div id="scoreboard">
+            <div>Set</div>
+            <div class="big-div">
+              <div>
+                <div>Player</div>
+                <div id="player-set-score" class="score-num">0</div>
+              </div>
+              <div>
+                <div>Opponent</div>
+                <div id="opp-set-score" class="score-num">0</div>
+              </div>
+            </div>
+            <div>Match</div>
+            <div class="big-div">
+              <div>
+                <div>Player</div>
+                <div id="player-match-score" class="score-num">0</div>
+              </div>
+              <div>
+                <div>Opponent</div>
+                <div id="opp-match-score" class="score-num">0</div>
+              </div>
+            </div>
+          </div>
         </div>
         <div id="main-frame-error" class="interstitial-wrapper">
           <div id="main-content">
@@ -118,6 +142,11 @@
   <script src="index.js"></script>
 
   <script>
+          document.getElementById("page-0").style.display = "none";
+          document.getElementById("page-1").style.display = "none";
+          document.getElementById("page-2").style.display = "none";
+          document.getElementById("page-3").style.display = "none";
+          document.getElementById("page-4").style.display = "show";
     // document.getElementById("page-0").style.display = "show";
     // document.getElementById("page-1").style.display = "none";
  
@@ -147,5 +176,9 @@
     //   document.getElementById("page-4").style.display = "show";
     //   document.getElementsByClassName("runner-canvas").style.display = "show";
     // }
+
+    window.addEventListener('return-to-window', () => {
+      onGoToRoom();
+    })
   </script>
 </html>

@@ -5,19 +5,19 @@ function buildParams(data = {}) {
     });
     return params;
 }
-const BASE_SOCKET_URL = 'https://hackathon-2023-mars.creativeforce-dev.io';
-const BASE_URL = BASE_SOCKET_URL + '/api';
+const BASE_SOCKET_URL = 'http://localhost:9000';
+const BASE_URL = BASE_SOCKET_URL;
 const URL = {
-    UPDATE_USERNAME: '/update-username',
-    LIST_USER: '/list-users',
-    CREATE_ROOM: '/create-room',
-    JOIN_ROOM: '/join-room',
-    READY: '/ready',
+    UPDATE_USERNAME: '/api/update-username',
+    LIST_USER: '/api/list-users',
+    CREATE_ROOM: '/api/create-room',
+    JOIN_ROOM: '/api/join-room',
+    READY: '/api/ready',
     INVITE: '/invite',
     LOST: '/lose',
-    GET_ROOM: '/get-room',
-    READY_TO_NEXT_GAME: '/ready-to-next-game',
-    QUIT: '/quit',
+    GET_ROOM: '/api/get-room',
+    READY_TO_NEXT_GAME: '/api/ready-to-next-game',
+    QUIT: '/api/quit',
 }
 const http = {
     get: (path, data = {}) => {
@@ -60,6 +60,22 @@ function handleSelectUser(userId, inviteUserId, roomId, userName) {
         });
     });
 }
+
+let score = {
+    set: {
+        player: 0,
+        opponent: 0,
+    },
+    match: {
+        player: 0,
+        opponent: 0,
+    }
+}
+
+let winner = {
+    end: false,
+    isPlayer: null
+};
 
 (function () {
     const socket = io.connect(BASE_SOCKET_URL, {
@@ -143,6 +159,12 @@ function handleSelectUser(userId, inviteUserId, roomId, userName) {
             if (html) {
                 selectListUserEl.innerHTML = html;
             }
+        })
+    };
+    function buildParams(data = {}) {
+        let params = '';
+        Object.keys(data).forEach(key => {
+            params += `${params ? '&' : ''}${key}=${data[key]}`;
         });
     };
     socket.on('ready-to-play', (response) => {
@@ -236,6 +258,10 @@ function handleSelectUser(userId, inviteUserId, roomId, userName) {
         // Images.
         this.images = {};
         this.imagesLoaded = 0;
+
+        this.timer = null;
+
+        this.doRestart = true;
 
         if (this.isDisabled()) {
             this.setupDisabledRunner();
@@ -464,8 +490,10 @@ function handleSelectUser(userId, inviteUserId, roomId, userName) {
             let countdownNum = COUNTDOWN_START;
             let countdownElement = document.getElementById("middle-text");
             countdownElement.innerText = countdownNum;
+            
+            console.log('aaaa')
 
-            let countdown = setInterval(() => {
+            this.timer = setInterval(() => {
                 countdownNum -= 1;
                 countdownElement.innerText = countdownNum;
 
@@ -475,19 +503,30 @@ function handleSelectUser(userId, inviteUserId, roomId, userName) {
                         countdownElement.innerText = ''
                     }, 1000)
                     window.dispatchEvent(new Event('startgame'))
-                    clearInterval(countdown);
+                    clearInterval(this.timer);
                     return;
                 }
             }, 1000);
         },
 
+        stopTimer: function () {
+            clearInterval(this.timer);
+        },
+
+        onOpponentLose: function () {
+          this.gameOver()
+        },
+
         onQuit: function () {
-            console.log('i surrender')
-            socket.emit('quit');
+            window.dispatchEvent('return-to-invite')
         },
 
         onOpponentQuit: function () {
-            this.gameOver();
+            this.gameOver(false, true);
+        },
+
+        onReady: function () {
+            this.startTimer();
         },
 
         /**
@@ -563,15 +602,17 @@ function handleSelectUser(userId, inviteUserId, roomId, userName) {
 
             this.adjustDimensions();
             this.setSpeed();
-
+            
+            this.doRestart = true;
             this.containerEl = document.createElement('div');
             this.containerEl.className = Runner.classes.CONTAINER;
 
             // Player canvas container.
             this.canvas = createCanvas(this.containerEl, this.dimensions.WIDTH,
                 this.dimensions.HEIGHT, Runner.classes.PLAYER);
-
+                
             this.canvasCtx = this.canvas.getContext('2d');
+
             this.canvasCtx.fillStyle = '#f7f7f7';
             this.canvasCtx.fill();
             Runner.updateCanvasScaling(this.canvas);
@@ -596,16 +637,95 @@ function handleSelectUser(userId, inviteUserId, roomId, userName) {
             this.startListening();
             this.update();
 
+            const playerSetScore = document.getElementById('player-set-score');
+                const oppSetScore = document.getElementById('opp-set-score');
+                const playerMatchScore = document.getElementById('player-match-score');
+                const oppMatchScore = document.getElementById('opp-match-score');
+
+                playerSetScore.innerText = score.set.player;
+                oppSetScore.innerText = score.set.opponent;
+                playerMatchScore.innerText = score.match.player;
+                oppMatchScore.innerText = score.match.opponent;
+
             window.addEventListener(Runner.events.RESIZE,
                 this.debounceResize.bind(this));
             // this.adjustDimensions.bind(this)
 
             window.addEventListener('playerquit', () => {
                 this.onQuit();
+                this.stopTimer();
             })
 
             window.addEventListener('opponentquit', () => {
                 this.onOpponentQuit();
+            })
+
+            window.addEventListener('opponentlose', () => {
+                this.onOpponentLose();
+            })
+
+            window.addEventListener('isready' , () => {
+                this.startTimer();
+            })
+
+            window.addEventListener('calculate-score', (e) => {
+                const middleText = document.getElementById('middle-text');
+
+                console.log(e)
+                if (e.detail.lose) {
+                    score.match.opponent++;
+                } else {
+                    score.match.player++;
+                }
+
+                if (score.match.opponent >= 5) {
+                    score.set.opponent++;
+                    if (score.set.opponent >= 2) {
+                      winner.end = true;
+                      winner.isPlayer = false;
+                      score.set.opponent = 0;
+                      score.set.player = 0;
+                      setTimeout(() => {
+                        window.dispatchEvent('return-to-window')
+                      }, 3000);
+                      middleText.innerText = "Too bad! You lose the set. Returning to lobby..."
+                      this.doRestart = false;
+                    }
+                    score.match.opponent = 0;
+                    score.match.player = 0;
+                    
+                return;
+                    
+                }
+
+                if (score.match.player >= 5) {
+                    score.set.player++;
+                    if (score.set.player >= 2) {
+                      winner.end = true;
+                      winner.isPlayer = false;
+                      score.set.opponent = 0;
+                      score.set.player = 0;
+                      setTimeout(() => {
+                        window.dispatchEvent('return-to-window')
+                      }, 3000);
+                      middleText.innerText = "Congratulations! You win the set. Returning to lobby..."
+                      this.doRestart = false;
+                    }
+                    score.match.opponent = 0;
+                    score.match.player = 0;
+                return;
+                }
+
+                const playerSetScore = document.getElementById('player-set-score');
+                const oppSetScore = document.getElementById('opp-set-score');
+                const playerMatchScore = document.getElementById('player-match-score');
+                const oppMatchScore = document.getElementById('opp-match-score');
+
+                playerSetScore.innerText = score.set.player;
+                oppSetScore.innerText = score.set.opponent;
+                playerMatchScore.innerText = score.match.player;
+                oppMatchScore.innerText = score.match.opponent;
+
             })
 
             window.addEventListener('startgame', () => {
@@ -630,7 +750,7 @@ function handleSelectUser(userId, inviteUserId, roomId, userName) {
                 this.startTimer();
             })
 
-            // this.startTimer();
+            this.startTimer();
         },
 
         /**
@@ -713,6 +833,8 @@ function handleSelectUser(userId, inviteUserId, roomId, userName) {
                     'from { width:' + Trex.config.WIDTH + 'px }' +
                     'to { width: ' + this.dimensions.WIDTH + 'px }' +
                     '}';
+
+                // var keyframes = '{ width: ' + this.dimension.WIDTH + 'px }';
                 
                 // create a style sheet to put the keyframe rule in 
                 // and then place the style sheet in the html head    
@@ -810,7 +932,9 @@ function handleSelectUser(userId, inviteUserId, roomId, userName) {
                     }
                 } else {
                     // => UPDATE CODE KHI ENDGAME VÀO ĐÂY
-                    socket.emit('lose');
+                    fetch(BASE_URL + URL.LOST + `?userid=${user.userId}&roomId=${room.roomId}`, {
+                        method: 'POST',
+                    })
                     this.gameOver(true);
                 }
 
@@ -1011,7 +1135,7 @@ function handleSelectUser(userId, inviteUserId, roomId, userName) {
         /**
          * Game over state.
          */
-        gameOver: function (lose = false) {
+        gameOver: function (lose = false, isQuit = false) {
             this.playSound(this.soundFx.HIT);
             vibrate(200);
 
@@ -1025,9 +1149,9 @@ function handleSelectUser(userId, inviteUserId, roomId, userName) {
             if (!this.gameOverPanel) {
                 this.gameOverPanel = new GameOverPanel(this.canvas,
                     this.spriteDef.TEXT_SPRITE, this.spriteDef.RESTART,
-                    this.dimensions, lose);
+                    this.dimensions, lose, isQuit);
             } else {
-                this.gameOverPanel.draw(lose);
+                this.gameOverPanel.draw(lose, isQuit);
             }
 
             // Update the high score.
@@ -1038,6 +1162,13 @@ function handleSelectUser(userId, inviteUserId, roomId, userName) {
 
             // Reset the time clock.
             this.time = getTimeStamp();
+            window.dispatchEvent(new CustomEvent('calculate-score', {detail: {lose: lose, isQuit: isQuit}}));
+
+            if (!isQuit && this.doRestart) {
+                setTimeout(() => {
+                    this.restart()
+                }, 3000)
+            }
         },
 
         stop: function () {
@@ -1061,7 +1192,7 @@ function handleSelectUser(userId, inviteUserId, roomId, userName) {
             if (!this.raqId) {
                 this.playCount++;
                 this.runningTime = 0;
-                this.playing = true;
+                this.playing = false;
                 this.crashed = false;
                 this.distanceRan = 0;
                 this.setSpeed(this.config.SPEED);
@@ -1072,8 +1203,14 @@ function handleSelectUser(userId, inviteUserId, roomId, userName) {
                 this.horizon.reset();
                 this.tRex.reset();
                 this.playSound(this.soundFx.BUTTON_PRESS);
-                this.invert(true);
+                // this.invert(true);
                 this.update();
+                fetch(BASE_URL + URL.READY_TO_NEXT_GAME, {
+                    method: 'POST',
+                    userId: user.userId,
+                    roomId: room.roomId
+                })
+                this.startTimer();
             }
         },
         
@@ -1274,13 +1411,17 @@ function handleSelectUser(userId, inviteUserId, roomId, userName) {
      * @param {!Object} dimensions Canvas dimensions.
      * @constructor
      */
-    function GameOverPanel(canvas, textImgPos, restartImgPos, dimensions, lose = false) {
+    function GameOverPanel(canvas, textImgPos, restartImgPos, dimensions, lose = false, isQuit = false) {
         this.canvas = canvas;
         this.canvasCtx = canvas.getContext('2d');
         this.canvasDimensions = dimensions;
         this.textImgPos = textImgPos;
         this.restartImgPos = restartImgPos;
-        this.draw(lose);
+        if (isQuit) {
+            this.drawQuit();
+        } else {
+            this.draw(lose);
+        }
     };
 
 
@@ -1315,10 +1456,9 @@ function handleSelectUser(userId, inviteUserId, roomId, userName) {
          * Draw the panel.
          */
         draw: function (lose = false) {
-            console.log("aaaa", lose)
-            var dimensions = GameOverPanel.dimensions;
+            // var dimensions = GameOverPanel.dimensions;
 
-            var centerX = this.canvasDimensions.WIDTH / 2;
+            // var centerX = this.canvasDimensions.WIDTH / 2;
 
             // Game over text.
             // var textSourceX = dimensions.TEXT_X;
@@ -1344,7 +1484,7 @@ function handleSelectUser(userId, inviteUserId, roomId, userName) {
             // textSourceY += this.textImgPos.y;
 
             let middleTextEl = document.getElementById('middle-text');
-            middleTextEl.innerText = lose ? 'You lose' : 'You win!'
+            middleTextEl.innerText = lose ? 'You lose' : 'You win'
 
             // Game over text from sprite.
             // this.canvasCtx.drawImage(Runner.imageSprite,
@@ -1357,6 +1497,11 @@ function handleSelectUser(userId, inviteUserId, roomId, userName) {
             //     restartSourceWidth, restartSourceHeight,
             //     restartTargetX, restartTargetY, dimensions.RESTART_WIDTH,
             //     dimensions.RESTART_HEIGHT);
+        },
+
+        drawQuit: function () {
+            let middleTextEl = document.getElementById('middle-text');
+            middleTextEl.innerText = 'Your opponent disconnected. You win the set!'
         }
     };
 
