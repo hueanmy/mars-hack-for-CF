@@ -69,14 +69,14 @@ function handleSelectUser(userId, inviteUserId, roomId, userName) {
     });
     socket.on('connect', () => {
         user.userId = socket.id;
-        // http.post(URL.CREATE_ROOM, {userId: user.userId}).then((res) => {
-        //     room = {
-        //         ...room,
-        //         ...res
-        //     };
-        //
-        // })
-        // console.log('success', user.userId)
+        http.post(URL.CREATE_ROOM, {userId: user.userId}).then((res) => {
+            room = {
+                ...room,
+                ...res
+            };
+        
+        })
+        console.log('success', user.userId)
     });
     socket.on('lose', () => {
         window.dispatchEvent(new Event('opponentlose'))
@@ -133,7 +133,7 @@ function handleSelectUser(userId, inviteUserId, roomId, userName) {
     }
 
     btnRoom.onclick = function() {
-        http.post(URL.CREATE_ROOM, inputRoom).then(res => {
+        http.post(URL.JOIN_ROOM, inputRoom).then(res => {
             console.log(res, inputRoom)
         });
         document.getElementById("page-2").style.display = "none";
