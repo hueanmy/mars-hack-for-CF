@@ -34,11 +34,12 @@
         <input
           placeholder="Enter user name"
           type="text"
+          id="inputUserName"
           class="form-control"
           formControlName="fname"
         />
       </div>
-      <button onclick="onGoToRoom()">Go</button>
+      <button id="btnGo">Go</button>
     </div>
     <div id="page-2" class="room form-group row">
       <div class="col-xl-5 col-lg-6 col-md-8 col-sm-1">
@@ -47,8 +48,9 @@
           type="text"
           class="form-control"
           formControlName="froom"
+          id="inputRoom"
         />
-        <button style="margin-top: 4px" onclick="onJoinTheRoom()">
+        <button style="margin-top: 4px" id="btnRoom">
           Join the room
         </button>
       </div>
@@ -116,31 +118,34 @@
   <script src="index.js"></script>
 
   <script>
-    document.getElementById("page-0").style.display = "none";
-    document.getElementById("page-1").style.display = "none";
-    document.getElementById("page-2").style.display = "none";
-    document.getElementById("page-3").style.display = "none";
-    document.getElementById("page-4").style.display = "show";
+    // document.getElementById("page-0").style.display = "show";
+    // document.getElementById("page-1").style.display = "none";
+ 
     function onStartGame() {
       document.getElementById("page-0").style.display = "none";
       document.getElementById("page-1").style.display = "show";
-      document.getElementsByClassName("runner-canvas").style.display = "none";
     }
 
-    function onGoToRoom() {
+    const btnGo = document.getElementById('page-1');
+    btnGo.onclick = function() {
       document.getElementById("page-1").style.display = "none";
       document.getElementById("page-2").style.display = "show";
     }
 
-    function onJoinTheRoom() {
-      document.getElementById("page-2").style.display = "none";
-      document.getElementById("page-3").style.display = "show";
-    }
+    // function onGoToRoom() {
+    //   document.getElementById("page-1").style.display = "none";
+    //   document.getElementById("page-2").style.display = "show";
+    // }
 
-    function onReady() {
-      document.getElementById("page-3").style.display = "none";
-      document.getElementById("page-4").style.display = "show";
-      document.getElementsByClassName("runner-canvas").style.display = "show";
-    }
+    // function onJoinTheRoom() {
+    //   document.getElementById("page-2").style.display = "none";
+    //   document.getElementById("page-3").style.display = "show";
+    // }
+
+    // function onReady() {
+    //   document.getElementById("page-3").style.display = "none";
+    //   document.getElementById("page-4").style.display = "show";
+    //   document.getElementsByClassName("runner-canvas").style.display = "show";
+    // }
   </script>
 </html>
