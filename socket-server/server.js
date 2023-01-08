@@ -20,172 +20,234 @@ const users = [];
 const rooms = [];
 
 app.post('/api/update-username', (req, res) => {
-    const userId = req.query.userId;
-    const userName = req.query.userName;
-
-    if(users.findIndex(u => u.userName.toLowerCase() === userName.toLowerCase()) != -1){
-        res.send("duplicate username");
+    try{
+        const userId = req.query.userId;
+        const userName = req.query.userName;
+    
+        if(users.findIndex(u => u.userName.toLowerCase() === userName.toLowerCase()) != -1){
+            res.send("duplicate username");
+        }
+        else if (users.findIndex(u => u.userId === userId) != -1) {
+            users.find(u => u.userId === userId).userName = userName;
+        }
     }
-    else if (users.findIndex(u => u.userId === userId) != -1) {
-        users.find(u => u.userId === userId).userName = userName;
+    catch(e)
+    {
+        console.log(`Err: ${e}`);
     }
     
     res.send("ok");
 });
 
 app.get('/api/list-users', (req, res) => {
-    const searchText = req?.query?.searchText || '';
-    const isOnlyFreeUser = req?.query?.isOnlyFreeUser == 'true' ? true : false;
-    console.log(req?.query, isOnlyFreeUser)
-    const userIdInRooms = [];
-    rooms.forEach(room => {
-        userIdInRooms.push(...room.users.map(u => u.userId));
-    });
-    res.send(users
-        .filter(u => u.userName != '' && (!searchText || u.userName.toLowerCase().indexOf(searchText.toLowerCase()) != -1))
-        .filter(u2 => isOnlyFreeUser !== true || userIdInRooms.indexOf(u2.userId) < 0));
+    try
+    {
+        const searchText = req?.query?.searchText || '';
+        const isOnlyFreeUser = req?.query?.isOnlyFreeUser == 'true' ? true : false;
+        console.log(req?.query, isOnlyFreeUser)
+        const userIdInRooms = [];
+        rooms.forEach(room => {
+            userIdInRooms.push(...room.users.map(u => u.userId));
+        });
+        res.send(users
+            .filter(u => u.userName != '' && (!searchText || u.userName.toLowerCase().indexOf(searchText.toLowerCase()) != -1))
+            .filter(u2 => isOnlyFreeUser !== true || userIdInRooms.indexOf(u2.userId) < 0));
+    }
+    catch(e)
+    {
+        console.log(`Err: ${e}`);
+        res.send(uesrs);
+    }
 });
 
 app.post('/api/create-room', (req, res) => {
-    const userId = req.query.userId;
-    let user = users.find(x => x.userId == userId);
-    const newRoom = {
-        id: uuid.v4(),
-        users: [
-            {
-                userId: userId,
-                userName: user.userName,
-                winSet: 0,
-                score: 0,
-                ready: false,
-                readyToNextGame: false,
-            }
-        ],
-    };
-    rooms.push(newRoom);
-    res.send(newRoom)
+    try
+    {
+        const userId = req.query.userId;
+        let user = users.find(x => x.userId == userId);
+        const newRoom = {
+            id: uuid.v4(),
+            users: [
+                {
+                    userId: userId,
+                    userName: user.userName,
+                    winSet: 0,
+                    score: 0,
+                    ready: false,
+                    readyToNextGame: false,
+                }
+            ],
+        };
+        rooms.push(newRoom);
+        res.send(newRoom)
+    }
+    catch(e)
+    {
+        console.log(`Err: ${e}`);
+    }
 });
 
 app.get('/api/join-room', (req, res) => {
-    const userId = req.query.userId;
-    const roomId = req.query.roomId;
+    try
+    {
+        const userId = req.query.userId;
+        const roomId = req.query.roomId;
 
-    let room = rooms.find(x => x.id == roomId);
-    if (room) {
-        if (room.users.length == 1 && room.users[0].userId != userId) {
-            // happy
+        let room = rooms.find(x => x.id == roomId);
+        if (room) {
+            if (room.users.length == 1 && room.users[0].userId != userId) {
+                // happy
 
-            let user = users.find(x => x.userId == userId);
-            room.users.push(user);
-            // io.to(room.users[0].userId).emit('ready', '');
-            // io.to(room.users[1].userId).emit('ready', '');
-            res.send("ok");
+                let user = users.find(x => x.userId == userId);
+                room.users.push(user);
+                // io.to(room.users[0].userId).emit('ready', '');
+                // io.to(room.users[1].userId).emit('ready', '');
+                res.send("ok");
 
-        } else
-            res.send("fail");
+            } 
+            else
+            {
+                res.send("fail");
+            }
+        }
     }
-
+    catch(e)
+    {
+        console.log(`Err: ${e}`);
+    }
 });
 
 app.get('/api/ready', (req, res) => {
-    const userId = req.query.userId;
-    const roomId = req.query.roomId;
+    try
+    {
+        const userId = req.query.userId;
+        const roomId = req.query.roomId;
 
-    let room = rooms.find(x => x.roomId == roomId);
-    if (room) {
-        let user = room.users.find(x => x.id == userId);
-        user.ready = true;
+        let room = rooms.find(x => x.roomId == roomId);
+        if (room) {
+            let user = room.users.find(x => x.id == userId);
+            user.ready = true;
 
-        if (room.users[0].ready && room.users[1].ready) {
-            io.to(room.users[0].userId).emit('ready-to-play', '');
-            io.to(room.users[1].userId).emit('ready-to-play', '');
+            if (room.users[0].ready && room.users[1].ready) {
+                io.to(room.users[0].userId).emit('ready-to-play', '');
+                io.to(room.users[1].userId).emit('ready-to-play', '');
+            }
+            res.send(room);
         }
-        res.send(room);
-
+    }
+    catch(e)
+    {
+        console.log(`Err: ${e}`);
     }
 });
 
 app.post('/api/invite', (req, res) => {
-    const userId = req.query.userId;
-    const inviteUserId = req.query.inviteUserId;
-    const roomId = req.query.roomId;
-    let room = rooms.find(x => x.roomId == roomId);
-    let inviteUser = users.find(x => x.id == inviteUserId);
-    if (room && inviteUser) {
-        io.to(inviteUserId).emit('invite', JSON.stringify({ inviteUser: users.find(x => x.id == userId), roomId: roomId }));
+    try
+    {
+        const userId = req.query.userId;
+        const inviteUserId = req.query.inviteUserId;
+        const roomId = req.query.roomId;
+        let room = rooms.find(x => x.roomId == roomId);
+        let inviteUser = users.find(x => x.id == inviteUserId);
+        if (room && inviteUser) {
+            io.to(inviteUserId).emit('invite', JSON.stringify({ inviteUser: users.find(x => x.id == userId), roomId: roomId }));
+        }
+        res.send("ok");
     }
-    res.send("ok");
+    catch(e)
+    {
+        console.log(`Err: ${e}`);
+    }
 });
 
 app.post('/api/lose', (req, res) => {
-    //1 user thua => cần cập nhật lại data cho cả 2
-    const loseUserId = req.query.userId;
+    try
+    {
+        //1 user thua => cần cập nhật lại data cho cả 2
+        const loseUserId = req.query.userId;
 
-    const roomId = req.query.roomId;
-    let room = rooms.find(x => x.id == roomId);
+        const roomId = req.query.roomId;
+        let room = rooms.find(x => x.id == roomId);
 
-    let winUser = room.users.find(x => x.userId != loseUserId);
-    let loseUser = room.users.find(x => x.userId == loseUserId);
+        let winUser = room.users.find(x => x.userId != loseUserId);
+        let loseUser = room.users.find(x => x.userId == loseUserId);
 
-    winUser.score += 1;
-    if (winUser.score == 5) {
-        winUser.winSet += 1;
-        if (winUser.winSet == 2) {
-            //win usser ca game
-            io.to(winUser.userId).emit('win', '');
-            io.to(loseUser.userId).emit('lose', '');
+        winUser.score += 1;
+        if (winUser.score == 5) {
+            winUser.winSet += 1;
+            if (winUser.winSet == 2) {
+                //win usser ca game
+                io.to(winUser.userId).emit('win', '');
+                io.to(loseUser.userId).emit('lose', '');
 
-            winUser.winSet = 0;
-            loseUser.winSet = 0;
-            winUser.score = 0;
-            loseUser.score = 0;
+                winUser.winSet = 0;
+                loseUser.winSet = 0;
+                winUser.score = 0;
+                loseUser.score = 0;
+            }
+            else {
+                winUser.score = 0;
+                loseUser.score = 0;
+
+                io.to(winUser.userId).emit('reset', '');
+                io.to(loseUser.userId).emit('reset', '');
+
+            }
         }
-        else {
-            winUser.score = 0;
-            loseUser.score = 0;
 
-            io.to(winUser.userId).emit('reset', '');
-            io.to(loseUser.userId).emit('reset', '');
-
-        }
+        res.send(room);
     }
-
-    res.send(room);
+    catch(e)
+    {
+        console.log(`Err: ${e}`);
+    }
 });
+
 app.get('/api/get-room', (req, res) => {
-    const room = rooms.find(x => x.id == req.query.roomId);
-    res.send(room);
+    try {
+        const room = rooms.find(x => x.id == req.query.roomId);
+        res.send(room);
+    } catch (e) {
+        console.log(`Err: ${e}`);
+    }
 });
+
 app.post('/api/ready-to-next-game', (req, res) => {
-    const userId = req.query.userId;
-    const roomId = req.query.roomId;
+    try {
+        const userId = req.query.userId;
+        const roomId = req.query.roomId;
 
-    let room = rooms.find(x => x.roomId == roomId);
-    if (room) {
-        let userReady = rooms.users.find(x => x.id == userId)
-        userReady.readyToNextGame = true;
+        let room = rooms.find(x => x.roomId == roomId);
+        if (room) {
+            let userReady = rooms.users.find(x => x.id == userId)
+            userReady.readyToNextGame = true;
 
-        if (room.users[0].readyToNextGame && room.users[1].readyToNextGame) {
-            io.to(room.users[0].userId).emit('ready-to-play-next-game', '');
-            io.to(room.users[1].userId).emit('ready-to-play-next-game', '');
+            if (room.users[0].readyToNextGame && room.users[1].readyToNextGame) {
+                io.to(room.users[0].userId).emit('ready-to-play-next-game', '');
+                io.to(room.users[1].userId).emit('ready-to-play-next-game', '');
+            }
         }
+    } catch (e) {
+        console.log(`Err: ${e}`);
     }
 });
 
 app.post('/api/quit', (req, res) => {
-    const roomId = req.query.roomId;
-    const userId = req.query.userId;
-    const room = rooms.find(x => x.id == roomId);
-    const winUser = room.users.find(x => x.userId == userId);
+    try {
+        const roomId = req.query.roomId;
+        const userId = req.query.userId;
+        const room = rooms.find(x => x.id == roomId);
+        const winUser = room.users.find(x => x.userId == userId);
 
-    io.to(winUser.userId).emit('user-quit', '');
-    room.users = [];
-    room.users.push(winUser);
+        io.to(winUser.userId).emit('user-quit', '');
+        room.users = [];
+        room.users.push(winUser);
 
-    res.send(room);
+        res.send(room);
+    } catch (e) {
+        console.log(`Err: ${e}`);
+    }
 });
-
-
 
 io.on('connection', (socket) => {
     console.log(`Socket ${socket.id} connect`);
@@ -214,8 +276,6 @@ io.on('connection', (socket) => {
             io.to(room.users[0].userId).emit('user-disconnect', '');
         }
     });
-
-
 });
 
 server.listen(9000, () => {
