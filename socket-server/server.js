@@ -62,21 +62,25 @@ app.post('/api/create-room', (req, res) => {
     try {
         const userId = req.query.userId;
         let user = users.find(x => x.userId == userId);
-        const newRoom = {
-            id: uuid.v4(),
-            users: [
-                {
-                    userId: userId,
-                    userName: user.userName,
-                    winSet: 0,
-                    score: 0,
-                    ready: false,
-                    readyToNextGame: false,
-                }
-            ],
-        };
-        rooms.push(newRoom);
-        res.send(newRoom)
+        if (user) {
+            const newRoom = {
+                id: uuid.v4(),
+                users: [
+                    {
+                        userId: userId,
+                        userName: user.userName,
+                        winSet: 0,
+                        score: 0,
+                        ready: false,
+                        readyToNextGame: false,
+                    }
+                ],
+            };
+            rooms.push(newRoom);
+            res.send(newRoom)
+        } else {
+            res.send('cant not create room');
+        }
     }
     catch (e) {
         console.log(`Err: ${e}`);
@@ -120,18 +124,19 @@ app.get('/api/ready', (req, res) => {
         let room = rooms.find(x => x.id == roomId);
         if (room) {
             let user = room.users.find(x => x.userId == userId);
-            user.ready = true;
-
-            if (room.users[0].ready && room.users[1].ready) {
-                io.to(room.users[0].userId).emit('ready-to-play', '');
-                io.to(room.users[1].userId).emit('ready-to-play', '');
+            if (user) {
+                user.ready = true;
+                if (room.users.length == 2 && room.users[0].ready && room.users[1].ready) {
+                    io.to(room.users[0].userId).emit('ready-to-play', '');
+                    io.to(room.users[1].userId).emit('ready-to-play', '');
+                }
+                room.users.forEach((u) => {
+                    io.to(u.userId).emit('user-ready', '');
+                })
+                res.send(room);
             }
-            io.to(room.users[0].userId).emit('user-ready', '');
-            io.to(room.users[1].userId).emit('user-ready', '');
-
-            res.send(room);
         }
-        else{
+        else {
             res.send('cant find room');
         }
     }
