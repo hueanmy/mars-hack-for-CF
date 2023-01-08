@@ -45,13 +45,20 @@ app.post('/api/update-username', (req, res) => {
 
 app.get('/api/list-users', (req, res) => {
     const searchText = req?.query?.searchText || '';
+    const isOnlyFreeUser = req?.query?.isOnlyFreeUser == 'true' ? true : false;
+    console.log(req?.query, isOnlyFreeUser)
+    const userIdInRooms = [];
+    rooms.forEach(room => {
+        userIdInRooms.push(...room.users.map(u => u.userId));
+    });
     res.send(users
-        .filter(u => u.userName != '' && (!searchText || u.userName.toLowerCase().indexOf(searchText.toLowerCase()) != -1)));
+        .filter(u => u.userName != '' && (!searchText || u.userName.toLowerCase().indexOf(searchText.toLowerCase()) != -1))
+        .filter(u2 => isOnlyFreeUser !== true || userIdInRooms.indexOf(u2.userId) < 0));
 });
 
 app.post('/api/create-room', (req, res) => {
     const userId = req.query.userId;
-    let user = users.find(x=>x.userId == userId);
+    let user = users.find(x => x.userId == userId);
     const newRoom = {
         id: uuid.v4(),
         users: [
@@ -78,7 +85,7 @@ app.get('/api/join-room', (req, res) => {
         if (room.users.length == 1 && room.users[0].userId != userId) {
             // happy
 
-            let user = users.find(x=>x.userId == userId);
+            let user = users.find(x => x.userId == userId);
             room.users.push(user);
             // io.to(room.users[0].userId).emit('ready', '');
             // io.to(room.users[1].userId).emit('ready', '');
@@ -96,10 +103,10 @@ app.get('/api/ready', (req, res) => {
 
     let room = rooms.find(x => x.roomId == roomId);
     if (room) {
-        let user = room.users.find(x=>x.id == userId);
+        let user = room.users.find(x => x.id == userId);
         user.ready = true;
 
-        if(room.users[0].ready && room.users[1].ready){
+        if (room.users[0].ready && room.users[1].ready) {
             io.to(room.users[0].userId).emit('ready-to-play', '');
             io.to(room.users[1].userId).emit('ready-to-play', '');
         }
@@ -133,7 +140,7 @@ app.post('/lose', (req, res) => {
     winUser.score += 1;
     if (winUser.score == 5) {
         winUser.winSet += 1;
-        if(winUser.winSet == 2){
+        if (winUser.winSet == 2) {
             //win usser ca game
             io.to(winUser.userId).emit('win', '');
             io.to(loseUser.userId).emit('lose', '');
@@ -149,10 +156,10 @@ app.post('/lose', (req, res) => {
 
             io.to(winUser.userId).emit('reset', '');
             io.to(loseUser.userId).emit('reset', '');
-            
+
         }
     }
-    
+
     res.send(room);
 });
 app.get('/api/get-room', (req, res) => {
@@ -168,7 +175,7 @@ app.post('/api/ready-to-next-game', (req, res) => {
         let userReady = rooms.users.find(x => x.id == userId)
         userReady.readyToNextGame = true;
 
-        if(room.users[0].readyToNextGame && room.users[1].readyToNextGame){
+        if (room.users[0].readyToNextGame && room.users[1].readyToNextGame) {
             io.to(room.users[0].userId).emit('ready-to-play-next-game', '');
             io.to(room.users[1].userId).emit('ready-to-play-next-game', '');
         }
@@ -177,7 +184,7 @@ app.post('/api/ready-to-next-game', (req, res) => {
 
 app.post('/api/quit', (req, res) => {
     const roomId = req.query.roomId;
-    const userId =  req.query.userId;
+    const userId = req.query.userId;
     const room = rooms.find(x => x.id == roomId);
     const winUser = room.users.find(x => x.userId == userId);
 
@@ -206,15 +213,15 @@ io.on('connection', (socket) => {
 
     socket.on('disconnect', (s) => {
         console.log(`${socket.id} disconnect`);
-        const index = users.indexOf(x=>x.userId == socket.id);
+        const index = users.indexOf(x => x.userId == socket.id);
         if (index > -1) { // only splice array when item is found
             users.splice(index, 1); // 2nd parameter means remove one item only
             console.log(`User ${socket.id} left`);
         }
-        const room =  rooms.find(x => x.users.indexOf(x => x.userId == socket.id) != -1);
-        if(room && room.users.length == 2){
+        const room = rooms.find(x => x.users.indexOf(x => x.userId == socket.id) != -1);
+        if (room && room.users.length == 2) {
             room.users = room.users.filter(x => x.userId == socket.id);
-            io.to(room.users[0].userId).emit('user-disconnect','');
+            io.to(room.users[0].userId).emit('user-disconnect', '');
         }
     });
 
