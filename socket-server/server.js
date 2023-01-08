@@ -133,7 +133,7 @@ app.post('/lose', (req, res) => {
     winUser.score += 1;
     if (winUser.score == 5) {
         winUser.winSet += 1;
-        if(winUser.winSet == 3){
+        if(winUser.winSet == 2){
             //win usser ca game
             io.to(winUser.userId).emit('win', '');
             io.to(loseUser.userId).emit('lose', '');
@@ -200,9 +200,15 @@ io.on('connection', (socket) => {
         readyToNextGame: false,
     });
 
-    socket.on('disconnect', () => {
+    socket.on('disconnect', (socket) => {
         //1. xoá user
         //xử lý giống như quit: user kia thắng luôn
+        users = users.filter(x => x.userId == socket.id);
+        const room =  rooms.find(x => x.users.indexOf(x => x.userId == socket.id) != -1);
+        if(room && room.users.length == 2){
+            room.users = room.users.filter(x => x.userId == socket.id);
+            io.to(room.users[0].userId).emit('user-disconnect','');
+        }
     });
 
 
