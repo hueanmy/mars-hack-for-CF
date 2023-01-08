@@ -189,7 +189,7 @@ io.on('connection', (socket) => {
 
     console.log(`User ${socket.id} joined`);
 
-    socket.on('disconnect', (socket) => {
+    socket.on('disconnect', (s) => {
         console.log(`${socket.id} disconnect`);
         const index = users.indexOf(x=>x.userId == socket.id);
         if (index > -1) { // only splice array when item is found
