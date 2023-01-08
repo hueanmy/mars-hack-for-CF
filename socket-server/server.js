@@ -183,14 +183,16 @@ io.on('connection', (socket) => {
         score: 0,
         ready: false,
         readyToNextGame: false,
+        joinDate: new Date().toLocaleString(),
     });
 
+    console.log(`User ${socket.id} joined`);
+
     socket.on('disconnect', (socket) => {
-        //1. xoá user
-        //xử lý giống như quit: user kia thắng luôn
         const index = users.indexOf(x=>x.userId == socket.id);
         if (index > -1) { // only splice array when item is found
             users.splice(index, 1); // 2nd parameter means remove one item only
+            console.log(`User ${socket.id} left`);
         }
         const room =  rooms.find(x => x.users.indexOf(x => x.userId == socket.id) != -1);
         if(room && room.users.length == 2){
