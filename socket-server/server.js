@@ -219,7 +219,7 @@ app.post('/api/lose', (req, res) => {
                 io.to(rooms.find(x => x.id == roomId).users.find(x => x.userId == loseUserId).userId).emit('reset', '');
             }
         }
-
+        io.to(rooms.find(x => x.id == roomId).users.find(x => x.userId != loseUserId).userId).emit('opponent-die', '');
         res.send(rooms.find(x => x.id == roomId));
     }
     catch (e) {
