@@ -17,7 +17,29 @@ const io = new Server(server, {
 const uuid = require('uuid');
 
 const users = [];
-const rooms = [];
+const rooms = [
+    {
+        id: "test",
+        users: [
+            {
+                userId: "u1",
+                userName: "uuu1",
+                winSet: 0,
+                score: 0,
+                ready: false,
+                readyToNextGame: false,
+            },
+            {
+                userId: "u2",
+                userName: "uuu2",
+                winSet: 0,
+                score: 0,
+                ready: false,
+                readyToNextGame: false,
+            },
+        ]
+    }
+];
 
 app.post('/api/update-username', (req, res) => {
     try {
@@ -118,12 +140,16 @@ app.get('/api/join-room', (req, res) => {
 
 app.get('/api/ready', (req, res) => {
     try {
+        console.log('ready', req);
+
         const userId = req.query.userId;
         const roomId = req.query.roomId;
 
         let room = rooms.find(x => x.id == roomId);
+        console.log('ready - room', room);
         if (room) {
             let user = room.users.find(x => x.userId == userId);
+            console.log('ready - user', user);
             if (user) {
                 user.ready = true;
                 if (room.users.length == 2 && room.users[0].ready && room.users[1].ready) {
