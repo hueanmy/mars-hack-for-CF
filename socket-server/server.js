@@ -105,6 +105,8 @@ app.get('/api/ready', (req, res) => {
             io.to(room.users[0].userId).emit('ready-to-play', '');
             io.to(room.users[1].userId).emit('ready-to-play', '');
         }
+        res.send(room);
+
     }
 });
 
