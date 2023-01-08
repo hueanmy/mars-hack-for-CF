@@ -20,28 +20,26 @@ const users = [];
 const rooms = [];
 
 app.post('/api/update-username', (req, res) => {
-    try{
+    try {
         const userId = req.query.userId;
         const userName = req.query.userName;
-    
-        if(users.findIndex(u => u.userName.toLowerCase() === userName.toLowerCase()) != -1){
+
+        if (users.findIndex(u => u.userName.toLowerCase() === userName.toLowerCase()) != -1) {
             res.send("duplicate username");
         }
         else if (users.findIndex(u => u.userId === userId) != -1) {
             users.find(u => u.userId === userId).userName = userName;
         }
     }
-    catch(e)
-    {
+    catch (e) {
         console.log(`Err: ${e}`);
     }
-    
+
     res.send("ok");
 });
 
 app.get('/api/list-users', (req, res) => {
-    try
-    {
+    try {
         const searchText = req?.query?.searchText || '';
         const isOnlyFreeUser = req?.query?.isOnlyFreeUser == 'true' ? true : false;
         console.log(req?.query, isOnlyFreeUser)
@@ -53,16 +51,14 @@ app.get('/api/list-users', (req, res) => {
             .filter(u => u.userName != '' && (!searchText || u.userName.toLowerCase().indexOf(searchText.toLowerCase()) != -1))
             .filter(u2 => isOnlyFreeUser !== true || userIdInRooms.indexOf(u2.userId) < 0));
     }
-    catch(e)
-    {
+    catch (e) {
         console.log(`Err: ${e}`);
         res.send(uesrs);
     }
 });
 
 app.post('/api/create-room', (req, res) => {
-    try
-    {
+    try {
         const userId = req.query.userId;
         let user = users.find(x => x.userId == userId);
         const newRoom = {
@@ -81,15 +77,13 @@ app.post('/api/create-room', (req, res) => {
         rooms.push(newRoom);
         res.send(newRoom)
     }
-    catch(e)
-    {
+    catch (e) {
         console.log(`Err: ${e}`);
     }
 });
 
 app.get('/api/join-room', (req, res) => {
-    try
-    {
+    try {
         const userId = req.query.userId;
         const roomId = req.query.roomId;
 
@@ -100,50 +94,51 @@ app.get('/api/join-room', (req, res) => {
 
                 let user = users.find(x => x.userId == userId);
                 room.users.push(user);
-                // io.to(room.users[0].userId).emit('ready', '');
-                // io.to(room.users[1].userId).emit('ready', '');
+                io.to(room.users[0].userId).emit('user-join-room', '');
+                io.to(room.users[1].userId).emit('user-join-room', '');
                 res.send("ok");
 
-            } 
-            else
-            {
+            }
+            else {
                 res.send("fail");
             }
         }
     }
-    catch(e)
-    {
+    catch (e) {
         console.log(`Err: ${e}`);
     }
 });
 
 app.get('/api/ready', (req, res) => {
-    try
-    {
+    try {
         const userId = req.query.userId;
         const roomId = req.query.roomId;
 
-        let room = rooms.find(x => x.roomId == roomId);
+        let room = rooms.find(x => x.id == roomId);
         if (room) {
-            let user = room.users.find(x => x.id == userId);
+            let user = room.users.find(x => x.userId == userId);
             user.ready = true;
 
             if (room.users[0].ready && room.users[1].ready) {
                 io.to(room.users[0].userId).emit('ready-to-play', '');
                 io.to(room.users[1].userId).emit('ready-to-play', '');
             }
+            io.to(room.users[0].userId).emit('user-ready', '');
+            io.to(room.users[1].userId).emit('user-ready', '');
+
             res.send(room);
         }
+        else{
+            res.send('cant find room');
+        }
     }
-    catch(e)
-    {
+    catch (e) {
         console.log(`Err: ${e}`);
     }
 });
 
 app.post('/api/invite', (req, res) => {
-    try
-    {
+    try {
         const userId = req.query.userId;
         const inviteUserId = req.query.inviteUserId;
         const roomId = req.query.roomId;
@@ -154,15 +149,13 @@ app.post('/api/invite', (req, res) => {
         }
         res.send("ok");
     }
-    catch(e)
-    {
+    catch (e) {
         console.log(`Err: ${e}`);
     }
 });
 
 app.post('/api/lose', (req, res) => {
-    try
-    {
+    try {
         //1 user thua => cần cập nhật lại data cho cả 2
         const loseUserId = req.query.userId;
 
@@ -197,8 +190,7 @@ app.post('/api/lose', (req, res) => {
 
         res.send(room);
     }
-    catch(e)
-    {
+    catch (e) {
         console.log(`Err: ${e}`);
     }
 });

@@ -5,7 +5,7 @@ function buildParams(data = {}) {
     });
     return params;
 }
-const BASE_SOCKET_URL = 'https://hackathon-2023-mars.creativeforce-dev.io';
+const BASE_SOCKET_URL = 'https://hackathon-2023-mars.creativeforce-dev.io/api/list-users';
 const BASE_URL = BASE_SOCKET_URL + '/api';
 const URL = {
     UPDATE_USERNAME: '/update-username',
@@ -84,11 +84,23 @@ function handleSelectUser(userId, inviteUserId, roomId, userName) {
     socket.on('quit', () => {
         window.dispatchEvent(new Event('opponentquit'))
     })
+    socket.on('update-username', () => {
+        window.dispatchEvent(new Event('opponentupdateusername'))
+    })
+    socket.on('create-room', () => {
+        window.dispatchEvent(new Event('opponentcreateroom'))
+    })
     const btnReady1El = document.getElementById('btnReady1');
     const txtReady1El = document.getElementById('txtReady1');
     const txtReady2El = document.getElementById('txtReady2');
     const inputSearchUserEl = document.getElementById('inputSearchUser');
     const selectListUserEl = document.getElementById('selectListUser');
+    const btnGo = document.getElementById('btnGo');
+    const btnRoom = document.getElementById('btnRoom');
+    const inputUserName = document.getElementById('inputUserName');
+    const inputRoom = document.getElementById('inputRoom');
+    const page1 = document.getElementById('page-1');
+    const page2 = document.getElementById('page-2');
     btnReady1El.onclick = function () {
         txtReady1El.style.display = 'block';
         btnReady1El.style.display = 'none';
@@ -97,6 +109,53 @@ function handleSelectUser(userId, inviteUserId, roomId, userName) {
             roomId: room.id
         })
     };
+
+    const listUsers = [];
+    http.get(URL.LIST_USER).then(res => {
+        listUsers.push(res);
+        console.log(listUsers, 'l')
+    })
+
+    if(listUsers && listUsers[0] && listUsers[0].length > 0) {
+        listUsers[0].forEach(item => {
+            if(inputUserName == item) {
+                alert("user existed");
+            } else {
+                http.post(URL.UPDATE_USERNAME, userName).then(res =>  {
+                    console.log(res, 'res');
+                });
+            }
+        })
+    }
+
+    btnGo.onclick = function() {
+        document.getElementById("page-1").style.display = "none";
+        document.getElementById("page-2").style.display = "show";
+    }
+
+    btnRoom.onclick = function() {
+        http.post(URL.CREATE_ROOM, inputRoom).then(res => {
+            console.log(res, inputRoom)
+        });
+        document.getElementById("page-2").style.display = "none";
+        document.getElementById("page-3").style.display = "show";
+    }
+
+
+
+
+
+    // http.post(URL.UPDATE_USERNAME, "aaa").then(res =>  {
+    //     console.log(res, 'res');
+    // });
+
+    http.post(URL.CREATE_ROOM, inputRoom).then(res => {
+        console.log(res, inputRoom)
+    });
+
+
+
+
     inputSearchUserEl.onchange = function () {
         const searchText = inputSearchUserEl.value;
         http.get(URL.LIST_USER, {searchText}).then(users => {
