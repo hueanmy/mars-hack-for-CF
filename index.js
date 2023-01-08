@@ -952,7 +952,7 @@ let winner = {
                     }
                 } else {
                     // => UPDATE CODE KHI ENDGAME VÀO ĐÂY
-                    fetch(BASE_URL + URL.LOST + `?userId=${user.userId}&roomId=${room.roomId}`, {
+                    fetch(BASE_URL + URL.LOST + `?userId=${user.userId}&roomId=${room.id}`, {
                         method: 'POST',
                     })
                     this.gameOver(true);
@@ -1226,7 +1226,7 @@ let winner = {
                 // this.invert(true);
                 this.update();
                 console.log(user, room)
-                fetch(BASE_URL + URL.READY_TO_NEXT_GAME + `?userId=${user.userId}&roomId=${room.roomId}`, {
+                fetch(BASE_URL + URL.READY_TO_NEXT_GAME + `?userId=${user.userId}&roomId=${room.id}`, {
                     method: 'POST',
                 })
                 if (doResetMatch) {
