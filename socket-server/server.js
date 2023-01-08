@@ -23,23 +23,13 @@ app.post('/api/update-username', (req, res) => {
     const userId = req.query.userId;
     const userName = req.query.userName;
 
-    console.log(req.query);
-    console.log(`update-username ${userId} - ${userName}`)
-
-    if (users.findIndex(u => u.userId === userId) != -1) {
-        // let user = users.find(u => u.userId === userId);
-        // user.userName = userName;
-
-        users.find(u => u.userId === userId).userName = userName;
-
-        // const index = users.indexOf(x=>x.userId == socket.id);
-        // if (index > -1) { 
-        //     users.splice(index, 1); 
-        // }
-
-        // users.push(user);
+    if(users.findIndex(u => u.userName.toLowerCase() === userName.toLowerCase()) != -1){
+        res.send("duplicate username");
     }
-
+    else if (users.findIndex(u => u.userId === userId) != -1) {
+        users.find(u => u.userId === userId).userName = userName;
+    }
+    
     res.send("ok");
 });
 
@@ -115,7 +105,7 @@ app.get('/api/ready', (req, res) => {
     }
 });
 
-app.post('/invite', (req, res) => {
+app.post('/api/invite', (req, res) => {
     const userId = req.query.userId;
     const inviteUserId = req.query.inviteUserId;
     const roomId = req.query.roomId;
@@ -127,7 +117,7 @@ app.post('/invite', (req, res) => {
     res.send("ok");
 });
 
-app.post('/lose', (req, res) => {
+app.post('/api/lose', (req, res) => {
     //1 user thua => cần cập nhật lại data cho cả 2
     const loseUserId = req.query.userId;
 
