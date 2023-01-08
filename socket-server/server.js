@@ -154,7 +154,7 @@ app.get('/api/ready', (req, res) => {
                     io.to(rooms.find(x => x.id == roomId).users[0].userId).emit('ready-to-play', '');
                     io.to(rooms.find(x => x.id == roomId).users[1].userId).emit('ready-to-play', '');
                 }
-                room.users.forEach((u) => {
+                rooms.find(x => x.id == roomId).users.forEach((u) => {
                     io.to(u.userId).emit('user-ready', '');
                 })
                 console.log('ready -users', rooms.find(x => x.id == roomId).users)
