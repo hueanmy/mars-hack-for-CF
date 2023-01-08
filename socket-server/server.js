@@ -33,6 +33,7 @@ app.post('/api/update-username', (req, res) => {
     }
     catch (e) {
         console.log(`Err: ${e}`);
+        res.send("Error", e);
     }
 
     res.send("ok");
@@ -79,6 +80,7 @@ app.post('/api/create-room', (req, res) => {
     }
     catch (e) {
         console.log(`Err: ${e}`);
+        res.send("Error", e);
     }
 });
 
@@ -106,6 +108,7 @@ app.get('/api/join-room', (req, res) => {
     }
     catch (e) {
         console.log(`Err: ${e}`);
+        res.send("Error", e);
     }
 });
 
@@ -134,6 +137,7 @@ app.get('/api/ready', (req, res) => {
     }
     catch (e) {
         console.log(`Err: ${e}`);
+        res.send("Error", e);
     }
 });
 
@@ -151,6 +155,7 @@ app.post('/api/invite', (req, res) => {
     }
     catch (e) {
         console.log(`Err: ${e}`);
+        res.send("Error", e);
     }
 });
 
@@ -192,6 +197,7 @@ app.post('/api/lose', (req, res) => {
     }
     catch (e) {
         console.log(`Err: ${e}`);
+        res.send("Error", e);
     }
 });
 
@@ -201,6 +207,7 @@ app.get('/api/get-room', (req, res) => {
         res.send(room);
     } catch (e) {
         console.log(`Err: ${e}`);
+        res.send("Error", e);
     }
 });
 
@@ -221,6 +228,7 @@ app.post('/api/ready-to-next-game', (req, res) => {
         }
     } catch (e) {
         console.log(`Err: ${e}`);
+        res.send("Error", e);
     }
 });
 
@@ -238,6 +246,7 @@ app.post('/api/quit', (req, res) => {
         res.send(room);
     } catch (e) {
         console.log(`Err: ${e}`);
+        res.send("Error", e);
     }
 });
 
