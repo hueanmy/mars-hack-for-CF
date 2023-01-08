@@ -5,7 +5,7 @@ function buildParams(data = {}) {
     });
     return params;
 }
-const BASE_SOCKET_URL = 'http://localhost:9000';
+const BASE_SOCKET_URL = 'https://hackathon-2023-mars.creativeforce-dev.io';
 const BASE_URL = BASE_SOCKET_URL;
 const URL = {
     UPDATE_USERNAME: '/api/update-username',
@@ -13,7 +13,7 @@ const URL = {
     CREATE_ROOM: '/api/create-room',
     JOIN_ROOM: '/api/join-room',
     READY: '/api/ready',
-    INVITE: '/invite',
+    INVITE: '/api/invite',
     LOST: '/lose',
     GET_ROOM: '/api/get-room',
     READY_TO_NEXT_GAME: '/api/ready-to-next-game',
@@ -161,25 +161,10 @@ let winner = {
             }
         })
     };
-    function buildParams(data = {}) {
-        let params = '';
-        Object.keys(data).forEach(key => {
-            params += `${params ? '&' : ''}${key}=${data[key]}`;
-        });
-    };
-    socket.on('ready-to-play', (response) => {
-        const users = response?.users || [];
-        if (users.length > 1 && users.every(u => u.ready)) {
-            document.getElementById('page-3').style.display = 'none';
-            window.dispatchEvent(new Event('startTimer'))
-
-        } else {
-            users.forEach(u => {
-                if (u.ready && u.userId !== user.userId) {
-                    txtReady2El.style.display = 'block';
-                }
-            });
-        }
+    socket.on('ready-to-play', () => {
+        document.getElementById('page-3').style.display = 'none';
+        document.getElementById('page-4').style.display = 'none';
+        window.dispatchEvent(new Event('startTimer'))
     });
     socket.on('invite', (str) => {
         const data = JSON.parse(str);
@@ -3124,7 +3109,7 @@ let winner = {
 
 
 function onDocumentLoad() {
-    new Runner('.interstitial-wrapper');
+    // new Runner('.interstitial-wrapper');
 }
 
 function onQuit() {
