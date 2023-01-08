@@ -74,7 +74,6 @@ function handleSelectUser(userId, inviteUserId, roomId, userName) {
                 ...room,
                 ...res
             };
-        
         })
         console.log('success', user.userId)
     });
@@ -110,50 +109,28 @@ function handleSelectUser(userId, inviteUserId, roomId, userName) {
         })
     };
 
-    const listUsers = [];
-    http.get(URL.LIST_USER).then(res => {
-        listUsers.push(res);
-        console.log(listUsers, 'l')
-    })
-
-    if(listUsers && listUsers[0] && listUsers[0].length > 0) {
-        listUsers[0].forEach(item => {
-            if(inputUserName == item) {
-                alert("user existed");
-            } else {
-                console.log(userName);
-                http.post(URL.UPDATE_USERNAME, userName);
+    btnGo.onclick = function() {
+        const searchText = inputUserName.value;
+        if (!searchText) {
+            return;
+        }
+        http.get(URL.LIST_USER, {searchText}).then(users => {
+            if (!users.length) {
+                document.getElementById("page-1").style.display = "none";
+                document.getElementById("page-2").style.display = "show";
+                document.getElementById("txtUserNameReady1").innerHTML = searchText;
+                http.post(URL.UPDATE_USERNAME, {
+                    userId: user.userId,
+                    userName: searchText
+                });
             }
         })
     }
 
-    btnGo.onclick = function() {
-        document.getElementById("page-1").style.display = "none";
-        document.getElementById("page-2").style.display = "show";
-    }
-
     btnRoom.onclick = function() {
-        http.post(URL.JOIN_ROOM, inputRoom).then(res => {
-            console.log(res, inputRoom)
-        });
         document.getElementById("page-2").style.display = "none";
         document.getElementById("page-3").style.display = "show";
     }
-
-
-
-
-
-    // http.post(URL.UPDATE_USERNAME, "aaa").then(res =>  {
-    //     console.log(res, 'res');
-    // });
-
-    http.post(URL.CREATE_ROOM, inputRoom).then(res => {
-        console.log(res, inputRoom)
-    });
-
-
-
 
     inputSearchUserEl.onchange = function () {
         const searchText = inputSearchUserEl.value;
@@ -182,8 +159,20 @@ function handleSelectUser(userId, inviteUserId, roomId, userName) {
             });
         }
     });
-    socket.on('invite', () => {
-        txtReady2El.style.display = 'block';
+    socket.on('invite', (str) => {
+        const data = JSON.parse(str);
+        http.get(URL.GET_ROOM, {roomId: data.roomId}).then(res => {
+            const users = res.users || [];
+            users.forEach(u => {
+                if (u.userId === user.userId) {
+                    document.getElementById("txtUserNameReady1").innerHTML = u.userName;
+                } else {
+                    document.getElementById("txtUserNameReady2").innerHTML = u.userName;
+                }
+            })
+            document.getElementById("page-2").style.display = "none";
+            document.getElementById("page-3").style.display = "show";
+        });
     });
 
     'use strict';
