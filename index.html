@@ -23,40 +23,37 @@
 
   <body id="t" class="offline">
 
-<!--    <div id="page-0" class="welcom form-group row">-->
-<!--      <div class="col-sm-3 col-form-label" style="display: block"></div>-->
-<!--      <div class="col-sm-6">-->
-<!--        <p>Welcom</p>-->
-<!--        <button onclick="onStartGame()">Start Game</button>-->
-<!--      </div>-->
-<!--    </div>-->
-<!--    <div id="page-1" class="username form-group row">-->
-<!--      <div class="col-sm-3 col-form-label" style="display: block"></div>-->
-<!--      <div class="col-sm-6">-->
-<!--        <input-->
-<!--          placeholder="Enter user name"-->
-<!--          type="text"-->
-<!--          class="form-control"-->
-<!--          formControlName="fname"-->
-<!--        />-->
-<!--      </div>-->
-<!--      <button onclick="onGoToRoom()">Go</button>-->
-<!--    </div>-->
-<!--    <div id="page-2" class="room form-group row">-->
-<!--      <div class="col-sm-3 col-form-label" style="display: block"></div>-->
-<!--      <div class="col-sm-6">-->
-<!--        <input-->
-<!--          placeholder="Enter room id"-->
-<!--          type="text"-->
-<!--          class="form-control"-->
-<!--          formControlName="froom"-->
-<!--        />-->
-<!--        <button style="margin-top: 4px" onclick="onJoinTheRoom()">-->
-<!--          Join the room-->
-<!--        </button>-->
-<!--      </div>-->
-<!--      <div class="grid-item"></div>-->
-<!--    </div>-->
+    <div id="page-0" class="welcom form-group row">
+      <div class="col-xl-5 col-lg-6 col-md-8 col-sm-10">
+        <p>Welcome</p>
+        <button onclick="onStartGame()">Start Game</button>
+      </div>
+    </div>
+    <div id="page-1" class="username form-group row">
+      <div class="col-xl-5 col-lg-6 col-md-8 col-sm-1">
+        <input
+          placeholder="Enter user name"
+          type="text"
+          class="form-control"
+          formControlName="fname"
+        />
+      </div>
+      <button onclick="onGoToRoom()">Go</button>
+    </div>
+    <div id="page-2" class="room form-group row">
+      <div class="col-xl-5 col-lg-6 col-md-8 col-sm-1">
+        <input
+          placeholder="Enter room id"
+          type="text"
+          class="form-control"
+          formControlName="froom"
+        />
+        <button style="margin-top: 4px" onclick="onJoinTheRoom()">
+          Join the room
+        </button>
+      </div>
+      <div class="grid-item"></div>
+    </div>
 
     <div id="page-3" class="invite form-group row">
       <div class="col-sm-3 col-form-label" style="display: block"></div>
@@ -77,13 +74,10 @@
     </div>
 
     <div id="page-4" class="runner form-group row">
-      <div class="col-sm-1"></div>
-      <div class="col-sm-10">
         <div id="messageBox" class="sendmessage">
-          <h1 style="text-align: center; font-family: 'Open Sans', sans-serif">
-            Press Space to start
+          <h1 id="middle-text" style="text-align: center; font-family: 'Open Sans', sans-serif">
           </h1>
-          <div class="niokbutton" onclick="okbuttonsend()"></div>
+          <button id="surrender" onclick="onSurrender()">X</button>
         </div>
         <div id="main-frame-error" class="interstitial-wrapper">
           <div id="main-content">
@@ -122,17 +116,15 @@
   <script src="index.js"></script>
 
   <script>
-    document.onkeydown = function (evt) {
-      evt = evt || window.event;
-      if (evt.keyCode == 32) {
-        var box = document.getElementById("messageBox");
-        box.style.visibility = "hidden";
-      }
-    };
-
+    document.getElementById("page-0").style.display = "none";
+    document.getElementById("page-1").style.display = "none";
+    document.getElementById("page-2").style.display = "none";
+    document.getElementById("page-3").style.display = "none";
+    document.getElementById("page-4").style.display = "show";
     function onStartGame() {
       document.getElementById("page-0").style.display = "none";
       document.getElementById("page-1").style.display = "show";
+      document.getElementsByClassName("runner-canvas").style.display = "none";
     }
 
     function onGoToRoom() {
@@ -148,6 +140,7 @@
     function onReady() {
       document.getElementById("page-3").style.display = "none";
       document.getElementById("page-4").style.display = "show";
+      document.getElementsByClassName("runner-canvas").style.display = "show";
     }
   </script>
 </html>

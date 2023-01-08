@@ -16,39 +16,37 @@ const io = new Server(server, {
 
 const uuid = require('uuid');
 
-const users = [
-    {
-        "userId": "123",
-        "userName": "hehe",
-        "winSet": 0,
-        "score": 0,
-        "ready": false,
-        "readyToNextGame": false
-    },
-    {
-        "userId": "12345",
-        "userName": "abc",
-        "winSet": 0,
-        "score": 0,
-        "ready": false,
-        "readyToNextGame": false
-    }
-];
+const users = [];
 const rooms = [];
 
 app.post('/api/update-username', (req, res) => {
     const userId = req.query.userId;
     const userName = req.query.userName;
-    if (users.findIndex(u => u.userId === userId) >= 0) {
+
+    console.log(req.query);
+    console.log(`update-username ${userId} - ${userName}`)
+
+    if (users.findIndex(u => u.userId === userId) != -1) {
+        // let user = users.find(u => u.userId === userId);
+        // user.userName = userName;
+
         users.find(u => u.userId === userId).userName = userName;
+
+        // const index = users.indexOf(x=>x.userId == socket.id);
+        // if (index > -1) { 
+        //     users.splice(index, 1); 
+        // }
+
+        // users.push(user);
     }
+
     res.send("ok");
 });
 
 app.get('/api/list-users', (req, res) => {
     const searchText = req?.query?.searchText || '';
     res.send(users
-        .filter(u => !searchText || u.userName.toLowerCase().indexOf(searchText.toLowerCase()) != -1));
+        .filter(u => u.userName != '' && (!searchText || u.userName.toLowerCase().indexOf(searchText.toLowerCase()) != -1)));
 });
 
 app.post('/api/create-room', (req, res) => {
@@ -105,6 +103,8 @@ app.get('/api/ready', (req, res) => {
             io.to(room.users[0].userId).emit('ready-to-play', '');
             io.to(room.users[1].userId).emit('ready-to-play', '');
         }
+        res.send(room);
+
     }
 });
 
@@ -133,7 +133,7 @@ app.post('/lose', (req, res) => {
     winUser.score += 1;
     if (winUser.score == 5) {
         winUser.winSet += 1;
-        if(winUser.winSet == 3){
+        if(winUser.winSet == 2){
             //win usser ca game
             io.to(winUser.userId).emit('win', '');
             io.to(loseUser.userId).emit('lose', '');
@@ -191,6 +191,7 @@ app.post('/api/quit', (req, res) => {
 
 
 io.on('connection', (socket) => {
+    console.log(`Socket ${socket.id} connect`);
     users.push({
         userId: socket.id,
         userName: '',
@@ -198,11 +199,23 @@ io.on('connection', (socket) => {
         score: 0,
         ready: false,
         readyToNextGame: false,
+        joinDate: new Date().toLocaleString(),
     });
 
-    socket.on('disconnect', () => {
-        //1. xoá user
-        //xử lý giống như quit: user kia thắng luôn
+    console.log(`User ${socket.id} joined`);
+
+    socket.on('disconnect', (s) => {
+        console.log(`${socket.id} disconnect`);
+        const index = users.indexOf(x=>x.userId == socket.id);
+        if (index > -1) { // only splice array when item is found
+            users.splice(index, 1); // 2nd parameter means remove one item only
+            console.log(`User ${socket.id} left`);
+        }
+        const room =  rooms.find(x => x.users.indexOf(x => x.userId == socket.id) != -1);
+        if(room && room.users.length == 2){
+            room.users = room.users.filter(x => x.userId == socket.id);
+            io.to(room.users[0].userId).emit('user-disconnect','');
+        }
     });
 
 

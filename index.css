@@ -201,6 +201,10 @@ div#page-3 {
   border-radius: 1.5%;
 }
 
+canvas.runner-canvas {
+  background-color: #ffffff;
+}
+
 .arcade-mode .runner-container {
   left: 0;
   margin: auto;
