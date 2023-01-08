@@ -16,7 +16,7 @@ const io = new Server(server, {
 
 const uuid = require('uuid');
 
-const users = [
+let users = [
     {
         "userId": "123",
         "userName": "hehe",
@@ -34,7 +34,7 @@ const users = [
         "readyToNextGame": false
     }
 ];
-const rooms = [];
+let rooms = [];
 
 app.post('/api/update-username', (req, res) => {
     const userId = req.query.userId;
