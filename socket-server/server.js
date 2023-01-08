@@ -58,7 +58,7 @@ app.post('/api/update-username', (req, res) => {
         res.send("Error", e);
     }
 
-    res.send("ok");
+    res.send({message: "ok"});
 });
 
 app.get('/api/list-users', (req, res) => {
@@ -123,7 +123,7 @@ app.get('/api/join-room', (req, res) => {
                 rooms.find(x => x.id == roomId).users.push(JSON.parse(JSON.stringify(user)));
                 io.to(rooms.find(x => x.id == roomId).users[0].userId).emit('user-join-room', '');
                 io.to(rooms.find(x => x.id == roomId).users[1].userId).emit('user-join-room', '');
-                res.send("ok");
+                res.send({message: "ok"});
                 console.log('/api/join-room', rooms.find(x => x.id == roomId));
             }
             else {
@@ -145,16 +145,14 @@ app.get('/api/ready', (req, res) => {
         const roomId = req.query.roomId;
 
         console.log('ready - room', rooms.find(x => x.id == roomId));
-        if (room) {
-            let user = rooms.find(x => x.id == roomId).users.find(x => x.userId == userId);
-            if (user) {
-                console.log('ready - user', user);
-                user.ready = true;
+        if (rooms.find(x => x.id == roomId)) {
+            if (rooms.find(x => x.id == roomId).users.find(x => x.userId == userId)) {
+                rooms.find(x => x.id == roomId).users.find(x => x.userId == userId).ready = true;
                 if (rooms.find(x => x.id == roomId).users.length == 2 && rooms.find(x => x.id == roomId).users[0].ready && rooms.find(x => x.id == roomId).users[1].ready) {
                     io.to(rooms.find(x => x.id == roomId).users[0].userId).emit('ready-to-play', '');
                     io.to(rooms.find(x => x.id == roomId).users[1].userId).emit('ready-to-play', '');
                 }
-                room.users.forEach((u) => {
+                rooms.find(x => x.id == roomId).users.forEach((u) => {
                     io.to(u.userId).emit('user-ready', '');
                 })
                 console.log('ready -users', rooms.find(x => x.id == roomId).users)
@@ -181,7 +179,7 @@ app.post('/api/invite', (req, res) => {
         if (room && inviteUser) {
             io.to(inviteUserId).emit('invite', JSON.stringify({ inviteUser: users.find(x => x.userId == userId), roomId: roomId }));
         }
-        res.send("ok");
+        res.send({message: "ok"});
     }
     catch (e) {
         console.log(`Err: ${e}`);
@@ -195,35 +193,34 @@ app.post('/api/lose', (req, res) => {
         const loseUserId = req.query.userId;
 
         const roomId = req.query.roomId;
-        let room = rooms.find(x => x.id == roomId);
+        rooms.find(x => x.id == roomId);
 
-        let winUser = room.users.find(x => x.userId != loseUserId);
-        let loseUser = room.users.find(x => x.userId == loseUserId);
+        rooms.find(x => x.id == roomId).users.find(x => x.userId != loseUserId);
+        rooms.find(x => x.id == roomId).users.find(x => x.userId == loseUserId);
 
-        winUser.score += 1;
-        if (winUser.score == 5) {
-            winUser.winSet += 1;
-            if (winUser.winSet == 2) {
+        rooms.find(x => x.id == roomId).users.find(x => x.userId != loseUserId).score += 1;
+        if (rooms.find(x => x.id == roomId).users.find(x => x.userId != loseUserId).score == 5) {
+            rooms.find(x => x.id == roomId).users.find(x => x.userId != loseUserId).winSet += 1;
+            if (rooms.find(x => x.id == roomId).users.find(x => x.userId != loseUserId).winSet == 2) {
                 //win usser ca game
-                io.to(winUser.userId).emit('win', '');
-                io.to(loseUser.userId).emit('lose', '');
+                io.to(rooms.find(x => x.id == roomId).users.find(x => x.userId != loseUserId).userId).emit('win', '');
+                io.to(rooms.find(x => x.id == roomId).users.find(x => x.userId == loseUserId).userId).emit('lose', '');
 
-                winUser.winSet = 0;
-                loseUser.winSet = 0;
-                winUser.score = 0;
-                loseUser.score = 0;
+                rooms.find(x => x.id == roomId).users.find(x => x.userId != loseUserId).winSet = 0;
+                rooms.find(x => x.id == roomId).users.find(x => x.userId == loseUserId).winSet = 0;
+                rooms.find(x => x.id == roomId).users.find(x => x.userId != loseUserId).score = 0;
+                rooms.find(x => x.id == roomId).users.find(x => x.userId == loseUserId).score = 0;
             }
             else {
-                winUser.score = 0;
-                loseUser.score = 0;
+                rooms.find(x => x.id == roomId).users.find(x => x.userId != loseUserId).score = 0;
+                rooms.find(x => x.id == roomId).users.find(x => x.userId == loseUserId).score = 0;
 
-                io.to(winUser.userId).emit('reset', '');
-                io.to(loseUser.userId).emit('reset', '');
-
+                io.to(rooms.find(x => x.id == roomId).users.find(x => x.userId != loseUserId).userId).emit('reset', '');
+                io.to(rooms.find(x => x.id == roomId).users.find(x => x.userId == loseUserId).userId).emit('reset', '');
             }
         }
 
-        res.send(room);
+        res.send(rooms.find(x => x.id == roomId));
     }
     catch (e) {
         console.log(`Err: ${e}`);
