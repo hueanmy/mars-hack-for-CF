@@ -23,6 +23,12 @@
         user.userId = socket.id;
         console.log('success')
     });
+    socket.on('lose', () => {
+        window.dispatchEvent(new Event('opponentlose'))
+    })
+    socket.on('quit', () => {
+        window.dispatchEvent(new Event('opponentquit'))
+    })
     function buildParams(data = {}) {
         let params = '';
         Object.keys(data).forEach(key => {
@@ -149,6 +155,10 @@
 
     /** @const */
     var IS_TOUCH_ENABLED = 'ontouchstart' in window;
+    
+    // /** @const */
+    var COUNTDOWN_START = 3;
+
 
     /**
      * Default game configuration.
@@ -336,6 +346,36 @@
             }
         },
 
+        startTimer: function () {
+            let countdownNum = COUNTDOWN_START;
+            let countdownElement = document.getElementById("middle-text");
+            countdownElement.innerText = countdownNum;
+        
+            let countdown = setInterval(() => {
+                countdownNum -= 1;
+                countdownElement.innerText = countdownNum;
+        
+                if (countdownNum <= 0) {
+                    countdownElement.innerText = 'START';
+                    setTimeout(() => {
+                        countdownElement.innerText = ''
+                    }, 1000)
+                    window.dispatchEvent(new Event('startgame'))
+                    clearInterval(countdown);
+                    return;
+                } 
+            }, 1000);            
+        },
+
+        onQuit: function () {
+            console.log('i surrender')
+            socket.emit('quit');
+        },
+
+        onOpponentQuit: function () {
+            this.gameOver();
+        },
+
         /**
          * Cache the appropriate image sprite from the page and get the sprite sheet
          * definition.
@@ -444,6 +484,35 @@
 
             window.addEventListener(Runner.events.RESIZE,
                 this.debounceResize.bind(this));
+            // this.adjustDimensions.bind(this)
+
+            window.addEventListener('playerquit', () => {
+                this.onQuit();
+            })
+
+            window.addEventListener('opponentquit', () => {
+                this.onOpponentQuit();
+            })
+
+            window.addEventListener('startgame', () => {
+                if (!this.crashed) {
+                    if (!this.playing) {
+                        this.loadSounds();
+                        this.playing = true;
+                        this.update();
+                        if (window.errorPageController) {
+                            errorPageController.trackEasterEgg();
+                        }
+                    }
+                    //  Play sound effect and jump on starting the game for the first time.
+                    if (!this.tRex.jumping && !this.tRex.ducking) {
+                        this.playSound(this.soundFx.BUTTON_PRESS);
+                        this.tRex.startJump(this.currentSpeed);
+                    }
+                }
+            })
+
+            this.startTimer();
         },
 
         /**
@@ -471,7 +540,7 @@
         adjustDimensions: function () {
             clearInterval(this.resizeTimerId_);
             this.resizeTimerId_ = null;
-
+            
             var boxStyles = window.getComputedStyle(this.outerContainerEl);
             var padding = Number(boxStyles.paddingLeft.substr(0,
                 boxStyles.paddingLeft.length - 2));
@@ -562,8 +631,8 @@
             this.playCount++;
 
             // Handle tabbing off the page. Pause the current game.
-            document.addEventListener(Runner.events.VISIBILITY,
-                this.onVisibilityChange.bind(this));
+            // document.addEventListener(Runner.events.VISIBILITY,
+            //     this.onVisibilityChange.bind(this));
 
             window.addEventListener(Runner.events.BLUR,
                 this.onVisibilityChange.bind(this));
@@ -622,7 +691,9 @@
                         this.currentSpeed += this.config.ACCELERATION;
                     }
                 } else {
-                    this.gameOver();
+                    // => UPDATE CODE KHI ENDGAME VÀO ĐÂY
+                    socket.emit('lose');
+                    this.gameOver(true);
                 }
 
                 var playAchievementSound = this.distanceMeter.update(deltaTime,
@@ -732,14 +803,6 @@
             if (e.target != this.detailsButton) {
                 if (!this.crashed && (Runner.keycodes.JUMP[e.keyCode] ||
                     e.type == Runner.events.TOUCHSTART)) {
-                    if (!this.playing) {
-                        this.loadSounds();
-                        this.playing = true;
-                        this.update();
-                        if (window.errorPageController) {
-                            errorPageController.trackEasterEgg();
-                        }
-                    }
                     //  Play sound effect and jump on starting the game for the first time.
                     if (!this.tRex.jumping && !this.tRex.ducking) {
                         this.playSound(this.soundFx.BUTTON_PRESS);
@@ -788,7 +851,8 @@
                 if (Runner.keycodes.RESTART[keyCode] || this.isLeftClickOnCanvas(e) ||
                     (deltaTime >= this.config.GAMEOVER_CLEAR_TIME &&
                         Runner.keycodes.JUMP[keyCode])) {
-                    this.restart();
+                    // this.restart();
+                    // => QUAY LẠI MÀN READY Ở ĐÂY
                 }
             } else if (this.paused && isjumpKey) {
                 // Reset the jump state
@@ -829,8 +893,7 @@
         /**
          * Game over state.
          */
-        gameOver: function () {
-            socket.emit('lose');
+        gameOver: function (lose = false) {
             this.playSound(this.soundFx.HIT);
             vibrate(200);
 
@@ -844,9 +907,9 @@
             if (!this.gameOverPanel) {
                 this.gameOverPanel = new GameOverPanel(this.canvas,
                     this.spriteDef.TEXT_SPRITE, this.spriteDef.RESTART,
-                    this.dimensions);
+                    this.dimensions, lose);
             } else {
-                this.gameOverPanel.draw();
+                this.gameOverPanel.draw(lose);
             }
 
             // Update the high score.
@@ -931,7 +994,7 @@
         onVisibilityChange: function (e) {
             if (document.hidden || document.webkitHidden || e.type == 'blur' ||
                 document.visibilityState != 'visible') {
-                this.stop();
+                // this.stop();
             } else if (!this.crashed) {
                 this.tRex.reset();
                 this.play();
@@ -1093,13 +1156,13 @@
      * @param {!Object} dimensions Canvas dimensions.
      * @constructor
      */
-    function GameOverPanel(canvas, textImgPos, restartImgPos, dimensions) {
+    function GameOverPanel(canvas, textImgPos, restartImgPos, dimensions, lose = false) {
         this.canvas = canvas;
         this.canvasCtx = canvas.getContext('2d');
         this.canvasDimensions = dimensions;
         this.textImgPos = textImgPos;
         this.restartImgPos = restartImgPos;
-        this.draw();
+        this.draw(lose);
     };
 
 
@@ -1133,50 +1196,49 @@
         /**
          * Draw the panel.
          */
-        draw: function () {
+        draw: function (lose = false) {
+            console.log("aaaa", lose)
             var dimensions = GameOverPanel.dimensions;
 
             var centerX = this.canvasDimensions.WIDTH / 2;
 
             // Game over text.
-            var textSourceX = dimensions.TEXT_X;
-            var textSourceY = dimensions.TEXT_Y;
-            var textSourceWidth = dimensions.TEXT_WIDTH;
-            var textSourceHeight = dimensions.TEXT_HEIGHT;
+            // var textSourceX = dimensions.TEXT_X;
+            // var textSourceY = dimensions.TEXT_Y;
+            // var textSourceWidth = dimensions.TEXT_WIDTH;
+            // var textSourceHeight = dimensions.TEXT_HEIGHT;
 
-            var textTargetX = Math.round(centerX - (dimensions.TEXT_WIDTH / 2));
-            var textTargetY = Math.round((this.canvasDimensions.HEIGHT - 25) / 3);
-            var textTargetWidth = dimensions.TEXT_WIDTH;
-            var textTargetHeight = dimensions.TEXT_HEIGHT;
+            // var textTargetX = Math.round(centerX - (dimensions.TEXT_WIDTH / 2));
+            // var textTargetY = Math.round((this.canvasDimensions.HEIGHT - 25) / 3);
+            // var textTargetWidth = dimensions.TEXT_WIDTH;
+            // var textTargetHeight = dimensions.TEXT_HEIGHT;
 
-            var restartSourceWidth = dimensions.RESTART_WIDTH;
-            var restartSourceHeight = dimensions.RESTART_HEIGHT;
-            var restartTargetX = centerX - (dimensions.RESTART_WIDTH / 2);
-            var restartTargetY = this.canvasDimensions.HEIGHT / 2;
+            // if (IS_HIDPI) {
+            //     textSourceY *= 2;
+            //     textSourceX *= 2;
+            //     textSourceWidth *= 2;
+            //     textSourceHeight *= 2;
+            //     restartSourceWidth *= 2;
+            //     restartSourceHeight *= 2;
+            // }
 
-            if (IS_HIDPI) {
-                textSourceY *= 2;
-                textSourceX *= 2;
-                textSourceWidth *= 2;
-                textSourceHeight *= 2;
-                restartSourceWidth *= 2;
-                restartSourceHeight *= 2;
-            }
+            // textSourceX += this.textImgPos.x;
+            // textSourceY += this.textImgPos.y;
 
-            textSourceX += this.textImgPos.x;
-            textSourceY += this.textImgPos.y;
+            let middleTextEl = document.getElementById('middle-text');
+            middleTextEl.innerText = lose ? 'You lose' : 'You win!'
 
             // Game over text from sprite.
-            this.canvasCtx.drawImage(Runner.imageSprite,
-                textSourceX, textSourceY, textSourceWidth, textSourceHeight,
-                textTargetX, textTargetY, textTargetWidth, textTargetHeight);
+            // this.canvasCtx.drawImage(Runner.imageSprite,
+            //     textSourceX, textSourceY, textSourceWidth, textSourceHeight,
+            //     textTargetX, textTargetY, textTargetWidth, textTargetHeight);
 
             // Restart button.
-            this.canvasCtx.drawImage(Runner.imageSprite,
-                this.restartImgPos.x, this.restartImgPos.y,
-                restartSourceWidth, restartSourceHeight,
-                restartTargetX, restartTargetY, dimensions.RESTART_WIDTH,
-                dimensions.RESTART_HEIGHT);
+            // this.canvasCtx.drawImage(Runner.imageSprite,
+            //     this.restartImgPos.x, this.restartImgPos.y,
+            //     restartSourceWidth, restartSourceHeight,
+            //     restartTargetX, restartTargetY, dimensions.RESTART_WIDTH,
+            //     dimensions.RESTART_HEIGHT);
         }
     };
 
@@ -2156,7 +2218,7 @@
                 }
             }
 
-            this.drawHighScore();
+            // this.drawHighScore();
             return playSound;
         },
 
@@ -2800,6 +2862,10 @@
 
 function onDocumentLoad() {
     new Runner('.interstitial-wrapper');
+}
+
+function onQuit() {
+    window.dispatchEvent(new Event('playerquit'))
 }
 
 document.addEventListener('DOMContentLoaded', onDocumentLoad);
