@@ -44,11 +44,21 @@ const http = {
     }
 };
 
-const user = {};
-const room = {};
+let user = {};
+let room = {};
 
-async function handleSelectUser(userId, inviteUserId, roomId) {
-    await http.post(URL.INVITE, {userId, inviteUserId, roomId});
+function handleSelectUser(userId, inviteUserId, roomId, userName) {
+    http.post(URL.INVITE, {userId, inviteUserId, roomId}).finally(() => {
+        http.get(URL.GET_ROOM, {roomId}).then(res => {
+            const txtUserNameReady2 = document.getElementById('txtUserNameReady2');
+            const inputSearchUser = document.getElementById('inputSearchUser');
+            const selectListUser = document.getElementById('selectListUser');
+            txtUserNameReady2.style.display = 'block';
+            inputSearchUser.style.display = 'none';
+            selectListUser.style.display = 'none';
+            txtUserNameReady2.innerHTML = userName;
+        });
+    });
 }
 
 (function () {
@@ -59,7 +69,14 @@ async function handleSelectUser(userId, inviteUserId, roomId) {
     });
     socket.on('connect', () => {
         user.userId = socket.id;
-        console.log('success')
+        // http.post(URL.CREATE_ROOM, {userId: user.userId}).then((res) => {
+        //     room = {
+        //         ...room,
+        //         ...res
+        //     };
+        //
+        // })
+        // console.log('success', user.userId)
     });
     socket.on('lose', () => {
         window.dispatchEvent(new Event('opponentlose'))
@@ -77,7 +94,7 @@ async function handleSelectUser(userId, inviteUserId, roomId) {
         btnReady1El.style.display = 'none';
         http.get(URL.READY, {
             userId: user.userId,
-            roomId: room.roomId
+            roomId: room.id
         })
     };
     inputSearchUserEl.onchange = function () {
@@ -86,7 +103,7 @@ async function handleSelectUser(userId, inviteUserId, roomId) {
             let html = '';
             (users || []).forEach(u => {
                 if (!u.userName) return;
-                html += `<div onclick="handleSelectUser('${user.userId}', '${u.userId}', '${room.roomId}')">${u.userName}</div>`
+                html += `<div onclick="handleSelectUser('${user.userId}', '${u.userId}', '${room.id}', '${u.userName}')">${u.userName}</div>`
             });
             if (html) {
                 selectListUserEl.innerHTML = html;
@@ -95,13 +112,21 @@ async function handleSelectUser(userId, inviteUserId, roomId) {
     };
     socket.on('ready-to-play', (response) => {
         const users = response?.users || [];
-        users.forEach(u => {
-            if (u.ready && u.userId !== user.userId) {
-                txtReady2El.style.display = 'block';
-            }
-        });
+        if (users.length > 1 && users.every(u => u.ready)) {
+            document.getElementById('page-3').style.display = 'none';
+            window.dispatchEvent(new Event('startTimer'))
+
+        } else {
+            users.forEach(u => {
+                if (u.ready && u.userId !== user.userId) {
+                    txtReady2El.style.display = 'block';
+                }
+            });
+        }
     });
-    socket.on('invite', () => {});
+    socket.on('invite', () => {
+        txtReady2El.style.display = 'block';
+    });
 
     'use strict';
     /**
@@ -554,7 +579,11 @@ async function handleSelectUser(userId, inviteUserId, roomId) {
                 }
             })
 
-            this.startTimer();
+            window.addEventListener('startTimer', () => {
+                this.startTimer();
+            })
+
+            // this.startTimer();
         },
 
         /**
