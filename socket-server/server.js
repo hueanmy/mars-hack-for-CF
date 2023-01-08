@@ -146,10 +146,8 @@ app.get('/api/ready', (req, res) => {
 
         console.log('ready - room', rooms.find(x => x.id == roomId));
         if (rooms.find(x => x.id == roomId)) {
-            let user = rooms.find(x => x.id == roomId).users.find(x => x.userId == userId);
-            if (user) {
-                console.log('ready - user', user);
-                user.ready = true;
+            if (rooms.find(x => x.id == roomId).users.find(x => x.userId == userId)) {
+                rooms.find(x => x.id == roomId).users.find(x => x.userId == userId).ready = true;
                 if (rooms.find(x => x.id == roomId).users.length == 2 && rooms.find(x => x.id == roomId).users[0].ready && rooms.find(x => x.id == roomId).users[1].ready) {
                     io.to(rooms.find(x => x.id == roomId).users[0].userId).emit('ready-to-play', '');
                     io.to(rooms.find(x => x.id == roomId).users[1].userId).emit('ready-to-play', '');
