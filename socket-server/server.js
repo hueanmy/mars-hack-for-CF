@@ -16,24 +16,7 @@ const io = new Server(server, {
 
 const uuid = require('uuid');
 
-let users = [
-    {
-        "userId": "123",
-        "userName": "hehe",
-        "winSet": 0,
-        "score": 0,
-        "ready": false,
-        "readyToNextGame": false
-    },
-    {
-        "userId": "12345",
-        "userName": "abc",
-        "winSet": 0,
-        "score": 0,
-        "ready": false,
-        "readyToNextGame": false
-    }
-];
+let users = [];
 let rooms = [];
 
 app.post('/api/update-username', (req, res) => {
