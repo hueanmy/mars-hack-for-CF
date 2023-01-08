@@ -117,6 +117,9 @@ let winner = {
     socket.on('ready-to-play-next-game', () => {
         window.dispatchEvent(new Event('isready'))
     })
+    socket.on('opponent-die', () => {
+        window.dispatchEvent(new Event('opponentlose'))
+    })
     const btnReady1El = document.getElementById('btnReady1');
     const txtReady1El = document.getElementById('txtReady1');
     const txtReady2El = document.getElementById('txtReady2');
@@ -176,9 +179,10 @@ let winner = {
         })
     };
     socket.on('ready-to-play', () => {
-        document.getElementById('page-3').style.display = 'none';
-        document.getElementById('page-4').style.display = 'none';
-        window.dispatchEvent(new Event('startTimer'))
+        // document.getElementById('page-3').style.display = 'none';
+        // document.getElementById('page-4').style.display = 'none';
+        console.log('ready')
+        window.dispatchEvent(new Event('isready'))
     });
     socket.on('invite', (str) => {
         const data = JSON.parse(str);
@@ -501,6 +505,14 @@ let winner = {
         },
 
         startTimer: function () {
+            console.log('vao')
+            document.getElementById('page-0').style.display = "none"
+            document.getElementById('page-1').style.display = "none"
+            document.getElementById('page-2').style.display = "none"
+            document.getElementById('page-3').style.display = "none"
+            document.getElementById('page-5').style.display = "none"
+            document.getElementById('page-4').style.display = "block"
+
             let countdownNum = COUNTDOWN_START;
             let countdownElement = document.getElementById("middle-text");
             countdownElement.innerText = countdownNum;
@@ -756,10 +768,6 @@ let winner = {
                         this.tRex.startJump(this.currentSpeed);
                     }
                 }
-            })
-
-            window.addEventListener('startTimer', () => {
-                this.startTimer();
             })
 
             // this.startTimer();
@@ -3156,7 +3164,7 @@ let winner = {
 
 
 function onDocumentLoad() {
-    // new Runner('.interstitial-wrapper');
+    new Runner('.interstitial-wrapper');
 }
 
 function onQuit() {

@@ -142,10 +142,10 @@
   <script src="index.js"></script>
 
   <script>
-          document.getElementById("page-0").style.display = "none";
-          document.getElementById("page-1").style.display = "none";
-          document.getElementById("page-2").style.display = "none";
-          document.getElementById("page-3").style.display = "none";
+          // document.getElementById("page-0").style.display = "none";
+          // document.getElementById("page-1").style.display = "none";
+          // document.getElementById("page-2").style.display = "none";
+          // document.getElementById("page-3").style.display = "none";
           document.getElementById("page-4").style.display = "show";
     // document.getElementById("page-0").style.display = "show";
     // document.getElementById("page-1").style.display = "none";
@@ -155,34 +155,30 @@
       document.getElementById("page-1").style.display = "show";
     }
 
-    const btnGo = document.getElementById('page-1');
-    btnGo.onclick = function() {
-      document.getElementById("page-1").style.display = "none";
-      document.getElementById("page-2").style.display = "show";
-    }
+    // const btnGo = document.getElementById('page-1');
+    // btnGo.onclick = function() {
+    //   document.getElementById("page-1").style.display = "none";
+    //   document.getElementById("page-2").style.display = "show";
+    // }
 
-    function onGoToRoom() {
-      document.getElementById("page-1").style.display = "none";
-      document.getElementById("page-2").style.display = "show";
-    }
+    // function onGoToRoom() {
+    //   document.getElementById("page-1").style.display = "none";
+    //   document.getElementById("page-2").style.display = "show";
+    // }
 
-    function onJoinTheRoom() {
-      document.getElementById("page-2").style.display = "none";
-      document.getElementById("page-3").style.display = "show";
-    }
+    // function onJoinTheRoom() {
+    //   document.getElementById("page-2").style.display = "none";
+    //   document.getElementById("page-3").style.display = "show";
+    // }
 
-    function onReady() {
-      document.getElementById("page-3").style.display = "none";
-      document.getElementById("page-4").style.display = "show";
-      document.getElementsByClassName("runner-canvas").style.display = "show";
-    }
+    // function onReady() {
+    //   document.getElementById("page-3").style.display = "none";
+    //   document.getElementById("page-4").style.display = "show";
+    //   document.getElementsByClassName("runner-canvas").style.display = "show";
+    // }
 
-    window.addEventListener('return-to-window', () => {
-      onGoToRoom();
-    })
-
-    window.addEventListener('showfourscreen', () => {
-      onReady();
-    })
+    // window.addEventListener('return-to-window', () => {
+    //   onGoToRoom();
+    // })
   </script>
 </html>
