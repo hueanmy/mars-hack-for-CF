@@ -117,7 +117,7 @@ app.get('/api/join-room', (req, res) => {
 
         let room = rooms.find(x => x.id == roomId);
         if (room) {
-            if (room.users.length == 1 && room.users[0].userId != userId) {
+            if (room.users.length == 1) {
                 // happy
 
                 let user = users.find(x => x.userId == userId);
@@ -125,7 +125,7 @@ app.get('/api/join-room', (req, res) => {
                 io.to(room.users[0].userId).emit('user-join-room', '');
                 io.to(room.users[1].userId).emit('user-join-room', '');
                 res.send("ok");
-
+                console.log('/api/join-room', room);
             }
             else {
                 res.send("fail");
