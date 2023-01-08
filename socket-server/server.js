@@ -145,7 +145,7 @@ app.get('/api/ready', (req, res) => {
         const roomId = req.query.roomId;
 
         console.log('ready - room', rooms.find(x => x.id == roomId));
-        if (room) {
+        if (rooms.find(x => x.id == roomId)) {
             let user = rooms.find(x => x.id == roomId).users.find(x => x.userId == userId);
             if (user) {
                 console.log('ready - user', user);
