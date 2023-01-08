@@ -123,15 +123,17 @@ app.get('/api/ready', (req, res) => {
         const userId = req.query.userId;
         const roomId = req.query.roomId;
 
-        let room = rooms.find(x => x.roomId == roomId);
+        let room = rooms.find(x => x.id == roomId);
         if (room) {
-            let user = room.users.find(x => x.id == userId);
+            let user = room.users.find(x => x.userId == userId);
             user.ready = true;
 
             if (room.users[0].ready && room.users[1].ready) {
                 io.to(room.users[0].userId).emit('ready-to-play', '');
                 io.to(room.users[1].userId).emit('ready-to-play', '');
             }
+            io.to(room.users[0].userId).emit('user-ready', '');
+            io.to(room.users[1].userId).emit('user-ready', '');
             res.send(room);
         }
     }
