@@ -115,17 +115,16 @@ app.get('/api/join-room', (req, res) => {
         const userId = req.query.userId;
         const roomId = req.query.roomId;
 
-        let room = rooms.find(x => x.id == roomId);
-        if (room) {
-            if (room.users.length == 1) {
+        if (rooms.find(x => x.id == roomId)) {
+            if (rooms.find(x => x.id == roomId).users.length == 1) {
                 // happy
 
                 let user = users.find(x => x.userId == userId);
-                room.users.push(user);
-                io.to(room.users[0].userId).emit('user-join-room', '');
-                io.to(room.users[1].userId).emit('user-join-room', '');
+                rooms.find(x => x.id == roomId).users.push(JSON.parse(JSON.stringify(user)));
+                io.to(rooms.find(x => x.id == roomId).users[0].userId).emit('user-join-room', '');
+                io.to(rooms.find(x => x.id == roomId).users[1].userId).emit('user-join-room', '');
                 res.send("ok");
-                console.log('/api/join-room', room);
+                console.log('/api/join-room', rooms.find(x => x.id == roomId));
             }
             else {
                 res.send("fail");
