@@ -76,7 +76,7 @@ app.get('/api/list-users', (req, res) => {
     }
     catch (e) {
         console.log(`Err: ${e}`);
-        res.send(uesrs);
+        res.send(users);
     }
 });
 
@@ -140,7 +140,7 @@ app.get('/api/join-room', (req, res) => {
 
 app.get('/api/ready', (req, res) => {
     try {
-        console.log('ready', req);
+        console.log('ready', req.query);
 
         const userId = req.query.userId;
         const roomId = req.query.roomId;
@@ -149,8 +149,8 @@ app.get('/api/ready', (req, res) => {
         console.log('ready - room', room);
         if (room) {
             let user = room.users.find(x => x.userId == userId);
-            console.log('ready - user', user);
             if (user) {
+                console.log('ready - user', user);
                 user.ready = true;
                 if (room.users.length == 2 && room.users[0].ready && room.users[1].ready) {
                     io.to(room.users[0].userId).emit('ready-to-play', '');
@@ -159,6 +159,7 @@ app.get('/api/ready', (req, res) => {
                 room.users.forEach((u) => {
                     io.to(u.userId).emit('user-ready', '');
                 })
+                console.log('ready -users', room.users)
                 res.send(room);
             }
         }
